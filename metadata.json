@@ -1,0 +1,8 @@
+{
+  "name": "Generador de Sesiones de Clase",
+  "description": "Herramienta educativa inteligente para diseñar sesiones de clase y planificaciones didácticas completas a partir de cualquier temática.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
