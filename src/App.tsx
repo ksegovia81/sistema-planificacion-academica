@@ -26,6 +26,7 @@ import {
 import LessonForm from "./components/LessonForm";
 import ComunicadoForm from "./components/ComunicadoForm";
 import { LessonPlan, SavedLessonPlan, CustomEvaluation, ParentCommunication, SavedParentCommunication } from "./types";
+import { i18n } from "./i18n";
 
 const parseBoldText = (text: string) => {
   const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -95,6 +96,8 @@ const renderMarkdown = (text: string) => {
 };
 
 export default function App() {
+  const [lang, setLang] = useState<"es" | "en">("es");
+  const t = i18n[lang];
   const [activeLesson, setActiveLesson] = useState<LessonPlan | null>(null);
   const [savedLessons, setSavedLessons] = useState<SavedLessonPlan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -175,7 +178,7 @@ export default function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, lang }),
       });
 
       if (!response.ok) {
@@ -222,7 +225,7 @@ export default function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(evaluationData),
+        body: JSON.stringify({ ...evaluationData, lang }),
       });
 
       if (!response.ok) {
@@ -550,7 +553,7 @@ export default function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(comunicadoData),
+        body: JSON.stringify({ ...comunicadoData, lang }),
       });
 
       if (!response.ok) {
@@ -1106,27 +1109,65 @@ ${lesson.materialDidactico.contenido}
         <div className="flex items-center space-x-4">
           <div className="w-10 h-10 bg-indigo-600 rounded-none flex items-center justify-center text-white font-bold text-xl font-display">L</div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-slate-800 uppercase font-display">SISTEMA DE PLANIFICACIÓN ACADÉMICA</h1>
-            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-widest">Sesión de Aprendizaje Estructurada</p>
+            <h1 className="text-lg font-bold tracking-tight text-slate-800 uppercase font-display">
+              {lang === "en" ? "ACADEMIC PLANNING SYSTEM" : "SISTEMA DE PLANIFICACIÓN ACADÉMICA"}
+            </h1>
+            <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-widest">
+              {lang === "en" ? "Structured Learning Session" : "Sesión de Aprendizaje Estructurada"}
+            </p>
           </div>
         </div>
-        <div className="hidden md:flex space-x-6">
-          {activeLesson ? (
-            <>
-              <div className="text-right border-l border-slate-200 pl-6">
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Temática Activa</p>
-                <p className="text-sm font-semibold text-indigo-600 truncate max-w-[200px]">{activeLesson.tema}</p>
+
+        {/* Language Switcher and Active Info */}
+        <div className="flex items-center space-x-6">
+          <div className="hidden md:flex space-x-6">
+            {activeLesson ? (
+              <>
+                <div className="text-right border-l border-slate-200 pl-6">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                    {lang === "en" ? "Active Topic" : "Temática Activa"}
+                  </p>
+                  <p className="text-sm font-semibold text-indigo-600 truncate max-w-[200px]">{activeLesson.tema}</p>
+                </div>
+                <div className="text-right border-l border-slate-200 pl-6">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                    {lang === "en" ? "Duration" : "Duración"}
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700">{activeLesson.duracion}</p>
+                </div>
+              </>
+            ) : (
+              <div className="text-right border-l border-slate-200 pl-6 flex items-center">
+                <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                  {lang === "en" ? "Waiting for parameters..." : "Esperando parámetros de entrada..."}
+                </span>
               </div>
-              <div className="text-right border-l border-slate-200 pl-6">
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Duración</p>
-                <p className="text-sm font-semibold text-slate-700">{activeLesson.duracion}</p>
-              </div>
-            </>
-          ) : (
-            <div className="text-right border-l border-slate-200 pl-6 flex items-center">
-              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Esperando parámetros de entrada...</span>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Elegant Language Selection Toggle */}
+          <div className="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setLang("es")}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                lang === "es"
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              ES
+            </button>
+            <button
+              onClick={() => setLang("en")}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                lang === "en"
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              EN
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1149,7 +1190,7 @@ ${lesson.materialDidactico.contenido}
               }`}
             >
               <BookOpen className="w-4 h-4" />
-              <span>Planes y Eval.</span>
+              <span>{lang === "en" ? "Plans & Eval" : "Planes y Eval."}</span>
             </button>
             <button
               onClick={() => {
@@ -1162,38 +1203,40 @@ ${lesson.materialDidactico.contenido}
               }`}
             >
               <Megaphone className="w-4 h-4" />
-              <span>Comunicados</span>
+              <span>{lang === "en" ? "Communications" : "Comunicados"}</span>
             </button>
           </div>
 
           {viewMode !== "comunicado" ? (
             <>
               {/* Main setup form */}
-              <LessonForm onGenerate={handleGenerate} onGenerateEvaluation={handleGenerateEvaluation} isLoading={isLoading} />
+              <LessonForm onGenerate={handleGenerate} onGenerateEvaluation={handleGenerateEvaluation} isLoading={isLoading} lang={lang} />
 
               {/* History / Saved Sessions */}
               <div className="border-t border-slate-200 pt-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Sesiones Guardadas ({savedLessons.length})</h3>
+                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">
+                    {lang === "en" ? `Saved Sessions (${savedLessons.length})` : `Sesiones Guardadas (${savedLessons.length})`}
+                  </h3>
                   {savedLessons.length > 0 && (
                     <button
                       onClick={() => {
-                        if (confirm("¿Estás seguro de borrar todo el historial?")) {
+                        if (confirm(lang === "en" ? "Are you sure you want to clear your class history?" : "¿Estás seguro de borrar todo el historial?")) {
                           saveLessonsToStorage([]);
                         }
                       }}
                       className="text-xs text-rose-600 hover:text-rose-800 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Limpiar</span>
+                      <span>{lang === "en" ? "Clear" : "Limpiar"}</span>
                     </button>
                   )}
                 </div>
 
                 {savedLessons.length === 0 ? (
                   <div className="bg-white border border-slate-200 border-dashed p-6 text-center">
-                    <p className="text-xs text-slate-400 uppercase tracking-wider">Sin sesiones en el historial</p>
-                    <p className="text-[11px] text-slate-400 mt-1">Las clases que generes se guardarán automáticamente aquí.</p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wider">{lang === "en" ? "No sessions in history" : "Sin sesiones en el historial"}</p>
+                    <p className="text-[11px] text-slate-400 mt-1">{lang === "en" ? "Lessons you generate will be automatically saved here." : "Las clases que generes se guardarán automáticamente aquí."}</p>
                   </div>
                 ) : (
                   <div className="space-y-2.5 max-h-[300px] lg:max-h-none overflow-y-auto pr-1">
@@ -1219,12 +1262,12 @@ ${lesson.materialDidactico.contenido}
                           <h4 className="text-xs font-bold text-slate-800 uppercase tracking-tight truncate">
                             {item.data.titulo}
                           </h4>
-                          <p className="text-[11px] text-slate-500 truncate">Tema: {item.data.tema}</p>
+                          <p className="text-[11px] text-slate-500 truncate">{lang === "en" ? "Topic" : "Tema"}: {item.data.tema}</p>
                         </div>
                         <button
                           onClick={(e) => handleDeleteSaved(item.id, e)}
                           className="text-slate-400 hover:text-rose-600 p-1 rounded transition-colors ml-2 shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                          title="Eliminar de mi historial"
+                          title={lang === "en" ? "Delete from history" : "Eliminar de mi historial"}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1237,31 +1280,33 @@ ${lesson.materialDidactico.contenido}
           ) : (
             <>
               {/* Comunicado form */}
-              <ComunicadoForm onGenerate={handleGenerateComunicado} isLoading={isLoading} />
+              <ComunicadoForm onGenerate={handleGenerateComunicado} isLoading={isLoading} lang={lang} />
 
               {/* History / Saved Comunicados */}
               <div className="border-t border-slate-200 pt-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Comunicados Guardados ({savedComunicados.length})</h3>
+                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">
+                    {lang === "en" ? `Saved Communications (${savedComunicados.length})` : `Comunicados Guardados (${savedComunicados.length})`}
+                  </h3>
                   {savedComunicados.length > 0 && (
                     <button
                       onClick={() => {
-                        if (confirm("¿Estás seguro de borrar todo el historial de comunicados?")) {
+                        if (confirm(lang === "en" ? "Are you sure you want to clear your communication history?" : "¿Estás seguro de borrar todo el historial de comunicados?")) {
                           saveComunicadosToStorage([]);
                         }
                       }}
                       className="text-xs text-rose-600 hover:text-rose-800 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Limpiar</span>
+                      <span>{lang === "en" ? "Clear" : "Limpiar"}</span>
                     </button>
                   )}
                 </div>
 
                 {savedComunicados.length === 0 ? (
                   <div className="bg-white border border-slate-200 border-dashed p-6 text-center">
-                    <p className="text-xs text-slate-400 uppercase tracking-wider">Sin comunicados en el historial</p>
-                    <p className="text-[11px] text-slate-400 mt-1">Los comunicados asertivos se guardarán automáticamente aquí.</p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wider">{lang === "en" ? "No communications in history" : "Sin comunicados en el historial"}</p>
+                    <p className="text-[11px] text-slate-400 mt-1">{lang === "en" ? "Assertive communications will be automatically saved here." : "Los comunicados asertivos se guardarán automáticamente aquí."}</p>
                   </div>
                 ) : (
                   <div className="space-y-2.5 max-h-[300px] lg:max-h-none overflow-y-auto pr-1">
@@ -1278,7 +1323,7 @@ ${lesson.materialDidactico.contenido}
                         <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center space-x-2">
                             <span className="text-[9px] font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 border border-emerald-200 font-bold uppercase">
-                              Comunicado
+                              {lang === "en" ? "Communication" : "Comunicado"}
                             </span>
                             <span className="text-[9px] text-slate-400 font-medium">
                               {new Date(item.timestamp).toLocaleDateString()}
@@ -1287,12 +1332,12 @@ ${lesson.materialDidactico.contenido}
                           <h4 className="text-xs font-bold text-slate-800 uppercase tracking-tight truncate">
                             {item.data.titulo}
                           </h4>
-                          <p className="text-[11px] text-slate-500 truncate">Alumno: {item.nombre}</p>
+                          <p className="text-[11px] text-slate-500 truncate">{lang === "en" ? "Student" : "Alumno"}: {item.nombre}</p>
                         </div>
                         <button
                           onClick={(e) => handleDeleteSavedComunicado(item.id, e)}
                           className="text-slate-400 hover:text-rose-600 p-1 rounded transition-colors ml-2 shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                          title="Eliminar de mi historial"
+                          title={lang === "en" ? "Delete from history" : "Eliminar de mi historial"}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1311,7 +1356,9 @@ ${lesson.materialDidactico.contenido}
             <div className="bg-rose-50 border border-rose-200 p-6 mb-8 text-rose-800 flex items-start space-x-3 rounded-none">
               <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
               <div>
-                <h4 className="font-bold text-sm uppercase tracking-wide">Error al generar la clase</h4>
+                <h4 className="font-bold text-sm uppercase tracking-wide">
+                  {lang === "en" ? "Error generating content" : "Error al generar la clase"}
+                </h4>
                 <p className="text-xs mt-1 leading-relaxed">{error}</p>
                 <div className="mt-4 flex space-x-3">
                   <button 
@@ -1322,7 +1369,7 @@ ${lesson.materialDidactico.contenido}
                     }} 
                     className="text-xs font-bold underline text-rose-900 uppercase tracking-widest hover:text-rose-950"
                   >
-                    Modificar parámetros
+                    {lang === "en" ? "Modify parameters" : "Modificar parámetros"}
                   </button>
                 </div>
               </div>
@@ -1336,22 +1383,22 @@ ${lesson.materialDidactico.contenido}
                   <Megaphone className="w-8 h-8 text-indigo-500" />
                 </div>
                 <h3 className="text-xl font-light text-slate-800 uppercase tracking-wider font-display">
-                  Redactor de Comunicados para Padres
+                  {t.welcomeCommTitle}
                 </h3>
                 <p className="text-xs text-slate-500 max-w-md mt-2 leading-relaxed">
-                  Completa el nombre del alumno y el tema o motivo de alerta/felicitación en el panel lateral para redactar de forma automatizada un comunicado asertivo y constructivo.
+                  {t.welcomeCommDesc}
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <span className="flex items-center gap-1.5">
-                    <Heart className="w-4 h-4 text-indigo-500" /> Redacción Asertiva y Empática
+                    <Heart className="w-4 h-4 text-indigo-500" /> {t.welcomeCommFeature1}
                   </span>
                   <span className="hidden sm:inline">•</span>
                   <span className="flex items-center gap-1.5">
-                    <Check className="w-4 h-4 text-emerald-500" /> Enfoque Positivo (Técnica Sándwich)
+                    <Check className="w-4 h-4 text-emerald-500" /> {t.welcomeCommFeature2}
                   </span>
                   <span className="hidden sm:inline">•</span>
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-indigo-500" /> Recomendaciones para el Hogar
+                    <Sparkles className="w-4 h-4 text-indigo-500" /> {t.welcomeCommFeature3}
                   </span>
                 </div>
               </div>
@@ -1361,22 +1408,22 @@ ${lesson.materialDidactico.contenido}
                   L
                 </div>
                 <h3 className="text-xl font-light text-slate-800 uppercase tracking-wider font-display">
-                  Listo para Diseñar tu Sesión o Evaluación
+                  {t.welcomePlansTitle}
                 </h3>
                 <p className="text-xs text-slate-500 max-w-md mt-2 leading-relaxed">
-                  Ingresa un tema en el panel lateral para diseñar un plan de clase estructurado, o adjunta un documento para habilitar el Generador de Evaluaciones Exclusivo.
+                  {t.welcomePlansDesc}
                 </p>
                 <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-bold uppercase tracking-wider text-slate-400">
                   <span className="flex items-center gap-1.5">
-                    <Check className="w-4 h-4 text-indigo-500" /> Plan de Sesión Inteligente
+                    <Check className="w-4 h-4 text-indigo-500" /> {t.welcomePlansFeature1}
                   </span>
                   <span className="hidden sm:inline">•</span>
                   <span className="flex items-center gap-1.5">
-                    <Check className="w-4 h-4 text-emerald-500" /> Evaluación de Documentos
+                    <Check className="w-4 h-4 text-emerald-500" /> {t.welcomePlansFeature2}
                   </span>
                   <span className="hidden sm:inline">•</span>
                   <span className="flex items-center gap-1.5">
-                    <Check className="w-4 h-4 text-indigo-500" /> Solucionario Completo
+                    <Check className="w-4 h-4 text-indigo-500" /> {t.welcomePlansFeature3}
                   </span>
                 </div>
               </div>
@@ -1396,7 +1443,7 @@ ${lesson.materialDidactico.contenido}
                       }`}
                     >
                       <BookOpen className="w-4 h-4" />
-                      <span>Planificación Pedagógica</span>
+                      <span>{lang === "en" ? "Pedagogical Lesson Plan" : "Planificación Pedagógica"}</span>
                     </button>
                   )}
                   {activeEvaluation && (
@@ -1410,7 +1457,7 @@ ${lesson.materialDidactico.contenido}
                       }`}
                     >
                       <Award className="w-4 h-4" />
-                      <span>Evaluación de Documento</span>
+                      <span>{lang === "en" ? "Document Assessment" : "Evaluación de Documento"}</span>
                     </button>
                   )}
                 </div>
@@ -1436,10 +1483,10 @@ ${lesson.materialDidactico.contenido}
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                   <div>
                     <h2 className="text-2xl md:text-3xl font-light text-slate-900 uppercase tracking-tight font-display">
-                      Sesión: <span className="font-bold text-slate-800">{activeLesson.titulo}</span>
+                      {lang === "en" ? "Session:" : "Sesión:"} <span className="font-bold text-slate-800">{activeLesson.titulo}</span>
                     </h2>
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1">
-                      Eje Temático Principal: <span className="text-slate-700 font-bold">{activeLesson.tema}</span>
+                      {lang === "en" ? "Main Thematic Axis:" : "Eje Temático Principal:"} <span className="text-slate-700 font-bold">{activeLesson.tema}</span>
                     </p>
                   </div>
 
@@ -1452,12 +1499,12 @@ ${lesson.materialDidactico.contenido}
                       {copiedSection === "full" ? (
                         <>
                           <Check className="w-4 h-4 text-emerald-600" />
-                          <span>¡Copiado!</span>
+                          <span>{lang === "en" ? "Copied!" : "¡Copiado!"}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-4 h-4" />
-                          <span>Copiar Markdown</span>
+                          <span>{lang === "en" ? "Copy Markdown" : "Copiar Markdown"}</span>
                         </>
                       )}
                     </button>
@@ -1467,7 +1514,7 @@ ${lesson.materialDidactico.contenido}
                       className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-2 shadow-sm transition-all cursor-pointer"
                     >
                       <Printer className="w-4 h-4" />
-                      <span>Imprimir / PDF</span>
+                      <span>{lang === "en" ? "Print / PDF" : "Imprimir / PDF"}</span>
                     </button>
                   </div>
                 </div>
@@ -1483,7 +1530,7 @@ ${lesson.materialDidactico.contenido}
                       : "border-transparent text-slate-400 hover:text-slate-600"
                   }`}
                 >
-                  1. Secuencia Didáctica
+                  {lang === "en" ? "1. Didactic Sequence" : "1. Secuencia Didáctica"}
                 </button>
                 <button
                   onClick={() => setActiveTab("worksheet")}
@@ -1493,7 +1540,7 @@ ${lesson.materialDidactico.contenido}
                       : "border-transparent text-slate-400 hover:text-slate-600"
                   }`}
                 >
-                  2. Ficha de Trabajo
+                  {lang === "en" ? "2. Student Worksheet" : "2. Ficha de Trabajo"}
                 </button>
                 <button
                   onClick={() => setActiveTab("evaluation")}
@@ -1503,7 +1550,7 @@ ${lesson.materialDidactico.contenido}
                       : "border-transparent text-slate-400 hover:text-slate-600"
                   }`}
                 >
-                  3. Evaluación & Consejos
+                  {lang === "en" ? "3. Assessment & Advice" : "3. Evaluación & Consejos"}
                 </button>
                 {activeLesson.rubrica && (
                   <button
@@ -1514,7 +1561,7 @@ ${lesson.materialDidactico.contenido}
                         : "border-transparent text-slate-400 hover:text-slate-600"
                     }`}
                   >
-                    4. Rúbrica de Evaluación
+                    {lang === "en" ? "4. Evaluation Rubric" : "4. Rúbrica de Evaluación"}
                   </button>
                 )}
                 {activeLesson.materialDidactico && activeLesson.materialDidactico.contenido && (
@@ -1526,7 +1573,7 @@ ${lesson.materialDidactico.contenido}
                         : "border-transparent text-slate-400 hover:text-slate-600"
                     }`}
                   >
-                    ✨ Material Didáctico
+                    {lang === "en" ? "✨ Didactic Material" : "✨ Material Didáctico"}
                   </button>
                 )}
               </div>
@@ -1542,12 +1589,12 @@ ${lesson.materialDidactico.contenido}
                       {/* Learning Goals */}
                       <div>
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">
-                          Objetivos de Aprendizaje
+                          {lang === "en" ? "Learning Objectives" : "Objetivos de Aprendizaje"}
                         </h3>
                         <div className="space-y-3">
                           <div className="bg-white p-4 border border-slate-200/60 shadow-sm">
                             <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1">
-                              General
+                              {lang === "en" ? "General" : "General"}
                             </p>
                             <p className="text-xs leading-relaxed text-slate-700 font-medium">
                               {activeLesson.objetivos.objetivoGeneral}
@@ -1557,7 +1604,7 @@ ${lesson.materialDidactico.contenido}
                           {activeLesson.objetivos.objetivosEspecificos.length > 0 && (
                             <div className="space-y-2 pt-2">
                               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                Específicos
+                                {lang === "en" ? "Specific" : "Específicos"}
                               </p>
                               <ul className="space-y-2">
                                 {activeLesson.objetivos.objetivosEspecificos.map((item, idx) => (
@@ -1573,7 +1620,7 @@ ${lesson.materialDidactico.contenido}
                           {activeLesson.objetivos.competencias && activeLesson.objetivos.competencias.length > 0 && (
                             <div className="space-y-2 pt-2 border-t border-slate-200/60">
                               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                Competencias Clave
+                                {lang === "en" ? "Key Competencies" : "Competencias Clave"}
                               </p>
                               <ul className="space-y-2">
                                 {activeLesson.objetivos.competencias.map((item, idx) => (
@@ -1591,13 +1638,13 @@ ${lesson.materialDidactico.contenido}
                       {/* Required Resources / Materials */}
                       <div className="border-t border-slate-200 pt-5 space-y-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                          Recursos Necesarios
+                          {lang === "en" ? "Required Resources" : "Recursos Necesarios"}
                         </h3>
                         
                         <div className="space-y-3.5">
                           <div>
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">
-                              Del Docente
+                              {lang === "en" ? "For the Teacher" : "Del Docente"}
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {activeLesson.materiales.docente.map((item, idx) => (
@@ -1613,7 +1660,7 @@ ${lesson.materialDidactico.contenido}
 
                           <div>
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">
-                              Del Estudiante
+                              {lang === "en" ? "For the Student" : "Del Estudiante"}
                             </span>
                             <div className="flex flex-wrap gap-1.5">
                               {activeLesson.materiales.estudiante.map((item, idx) => (
@@ -1636,7 +1683,7 @@ ${lesson.materialDidactico.contenido}
                   <div className="xl:col-span-2 space-y-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">
-                        Estructura de la Clase
+                        {lang === "en" ? "Class Structure" : "Estructura de la Clase"}
                       </h3>
                       <div className="flex space-x-1.5">
                         <div className="w-2.5 h-2.5 bg-slate-200"></div>
@@ -1650,12 +1697,14 @@ ${lesson.materialDidactico.contenido}
                       <div className="bg-white border border-slate-200 flex items-stretch hover:shadow-sm transition-all group">
                         <div className="w-14 bg-slate-100 flex flex-col items-center justify-center border-r border-slate-200 text-slate-400 font-mono text-base font-bold select-none shrink-0">
                           <span>01</span>
-                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">INI</span>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                            {lang === "en" ? "BEG" : "INI"}
+                          </span>
                         </div>
                         <div className="p-5 md:p-6 flex-1 space-y-4">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
                             <h4 className="font-bold text-slate-800 uppercase tracking-wide text-xs">
-                              Fase de Inicio (Conexión y Motivación)
+                              {lang === "en" ? "Beginning Phase (Connection & Motivation)" : "Fase de Inicio (Conexión y Motivación)"}
                             </h4>
                             <span className="text-[11px] font-mono bg-slate-100 border border-slate-200 px-2 py-0.5 font-bold self-start sm:self-center">
                               {activeLesson.secuenciaDidactica.inicio.duracionEstimada}
@@ -1687,12 +1736,14 @@ ${lesson.materialDidactico.contenido}
                       <div className="bg-white border border-slate-200 flex items-stretch hover:shadow-sm transition-all">
                         <div className="w-14 bg-slate-100 flex flex-col items-center justify-center border-r border-slate-200 text-slate-400 font-mono text-base font-bold select-none shrink-0">
                           <span>02</span>
-                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">DES</span>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                            {lang === "en" ? "DEV" : "DES"}
+                          </span>
                         </div>
                         <div className="p-5 md:p-6 flex-1 space-y-4">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
                             <h4 className="font-bold text-slate-800 uppercase tracking-wide text-xs">
-                              Fase de Desarrollo (Procesamiento y Práctica)
+                              {lang === "en" ? "Development Phase (Processing & Practice)" : "Fase de Desarrollo (Procesamiento y Práctica)"}
                             </h4>
                             <span className="text-[11px] font-mono bg-slate-100 border border-slate-200 px-2 py-0.5 font-bold self-start sm:self-center">
                               {activeLesson.secuenciaDidactica.desarrollo.duracionEstimada}
@@ -1710,7 +1761,7 @@ ${lesson.materialDidactico.contenido}
                                 </p>
                                 {act.recursos && (
                                   <p className="text-[11px] text-slate-400 italic">
-                                    Recursos específicos: {act.recursos}
+                                    {lang === "en" ? "Specific resources:" : "Recursos específicos:"} {act.recursos}
                                   </p>
                                 )}
                               </div>
@@ -1724,12 +1775,14 @@ ${lesson.materialDidactico.contenido}
                       <div className="bg-white border border-slate-200 flex items-stretch hover:shadow-sm transition-all">
                         <div className="w-14 bg-slate-100 flex flex-col items-center justify-center border-r border-slate-200 text-slate-400 font-mono text-base font-bold select-none shrink-0">
                           <span>03</span>
-                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">CIE</span>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                            {lang === "en" ? "END" : "CIE"}
+                          </span>
                         </div>
                         <div className="p-5 md:p-6 flex-1 space-y-4">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
                             <h4 className="font-bold text-slate-800 uppercase tracking-wide text-xs">
-                              Fase de Cierre (Reflexión y Evaluación)
+                              {lang === "en" ? "Closing Phase (Reflection & Assessment)" : "Fase de Cierre (Reflexión y Evaluación)"}
                             </h4>
                             <span className="text-[11px] font-mono bg-slate-100 border border-slate-200 px-2 py-0.5 font-bold self-start sm:self-center">
                               {activeLesson.secuenciaDidactica.cierre.duracionEstimada}
@@ -1747,7 +1800,7 @@ ${lesson.materialDidactico.contenido}
                                 </p>
                                 {act.recursos && (
                                   <p className="text-[11px] text-slate-400 italic">
-                                    Recursos específicos: {act.recursos}
+                                    {lang === "en" ? "Specific resources:" : "Recursos específicos:"} {act.recursos}
                                   </p>
                                 )}
                               </div>
@@ -1768,17 +1821,25 @@ ${lesson.materialDidactico.contenido}
                 <div className="flex-1 bg-slate-50 border border-slate-200 p-6 md:p-8 space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
                     <div>
-                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest block mb-0.5">MATERIAL ENTREGABLE</span>
+                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest block mb-0.5">
+                        {lang === "en" ? "DELIVERABLE MATERIAL" : "MATERIAL ENTREGABLE"}
+                      </span>
                       <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">
                         {activeLesson.fichaTrabajo.tituloFicha}
                       </h3>
                     </div>
                     <button
                       onClick={() => {
-                        const exercisesText = activeLesson.fichaTrabajo.ejercicios.map((ej, index) => (
-                          `${index + 1}. Pregunta: ${ej.enunciado}\n   Pista: ${ej.pistas || "N/A"}\n   Solución recomendada: ${ej.solucionSugerida}`
-                        )).join("\n\n");
-                        const fullText = `FICHA DE TRABAJO: ${activeLesson.fichaTrabajo.tituloFicha}\n\nInstrucciones:\n${activeLesson.fichaTrabajo.instrucciones}\n\nEjercicios:\n${exercisesText}`;
+                        const exercisesText = activeLesson.fichaTrabajo.ejercicios.map((ej, index) => {
+                          const qLabel = lang === "en" ? "Question" : "Pregunta";
+                          const pLabel = lang === "en" ? "Hint" : "Pista";
+                          const sLabel = lang === "en" ? "Recommended Solution" : "Solución recomendada";
+                          return `${index + 1}. ${qLabel}: ${ej.enunciado}\n   ${pLabel}: ${ej.pistas || "N/A"}\n   ${sLabel}: ${ej.solucionSugerida}`;
+                        }).join("\n\n");
+                        const wsTitle = lang === "en" ? "STUDENT WORKSHEET" : "FICHA DE TRABAJO";
+                        const instLabel = lang === "en" ? "Instructions" : "Instrucciones";
+                        const exLabel = lang === "en" ? "Exercises" : "Ejercicios";
+                        const fullText = `${wsTitle}: ${activeLesson.fichaTrabajo.tituloFicha}\n\n${instLabel}:\n${activeLesson.fichaTrabajo.instrucciones}\n\n${exLabel}:\n${exercisesText}`;
                         handleCopyText(fullText, "worksheet");
                       }}
                       className="px-4.5 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider flex items-center space-x-2 shadow-sm hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer self-start sm:self-center"
@@ -1786,12 +1847,12 @@ ${lesson.materialDidactico.contenido}
                       {copiedSection === "worksheet" ? (
                         <>
                           <Check className="w-4 h-4 text-emerald-600" />
-                          <span>¡Copia Lista!</span>
+                          <span>{lang === "en" ? "Copied!" : "¡Copia Lista!"}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-4 h-4" />
-                          <span>Copiar Ficha de Trabajo</span>
+                          <span>{lang === "en" ? "Copy Worksheet" : "Copiar Ficha de Trabajo"}</span>
                         </>
                       )}
                     </button>
@@ -1799,7 +1860,9 @@ ${lesson.materialDidactico.contenido}
 
                   {/* Instructions banner */}
                   <div className="bg-white border-l-4 border-indigo-600 p-4 shadow-sm">
-                    <span className="text-[9px] font-black text-indigo-700 uppercase block mb-1">Instrucciones para el Estudiante:</span>
+                    <span className="text-[9px] font-black text-indigo-700 uppercase block mb-1">
+                      {lang === "en" ? "Student Instructions:" : "Instrucciones para el Estudiante:"}
+                    </span>
                     <p className="text-xs text-slate-600 italic leading-relaxed">{activeLesson.fichaTrabajo.instrucciones}</p>
                   </div>
 
@@ -1814,7 +1877,9 @@ ${lesson.materialDidactico.contenido}
                         </div>
                         
                         <div className="space-y-1.5 flex-1">
-                          <p className="text-xs font-bold text-slate-800 uppercase tracking-tight">Pregunta o Enunciado:</p>
+                          <p className="text-xs font-bold text-slate-800 uppercase tracking-tight">
+                            {lang === "en" ? "Question or Premise:" : "Pregunta o Enunciado:"}
+                          </p>
                           <p className="text-xs text-slate-700 font-medium leading-relaxed bg-slate-50 border border-slate-100 p-3">
                             {ej.enunciado}
                           </p>
@@ -1822,14 +1887,16 @@ ${lesson.materialDidactico.contenido}
 
                         {ej.pistas && (
                           <div className="text-[11px] text-slate-500 italic bg-amber-50/50 border border-amber-100/50 p-2.5">
-                            <span className="font-bold text-amber-800 not-italic uppercase text-[9px] block mb-0.5">Pista de Apoyo:</span>
+                            <span className="font-bold text-amber-800 not-italic uppercase text-[9px] block mb-0.5">
+                              {lang === "en" ? "Support Hint:" : "Pista de Apoyo:"}
+                            </span>
                             {ej.pistas}
                           </div>
                         )}
 
                         <details className="group border-t border-slate-100 pt-3">
                           <summary className="text-[10px] font-bold uppercase text-indigo-600 hover:text-indigo-800 cursor-pointer list-none flex items-center justify-between">
-                            <span>Ver Solución Esperada</span>
+                            <span>{lang === "en" ? "View Expected Solution" : "Ver Solución Esperada"}</span>
                             <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90 text-indigo-500" />
                           </summary>
                           <p className="text-xs text-slate-600 mt-2 bg-indigo-50/20 border border-indigo-100/30 p-3 italic leading-relaxed">
@@ -1850,14 +1917,18 @@ ${lesson.materialDidactico.contenido}
                   <div className="lg:col-span-2 bg-slate-50 border border-slate-200 p-6 md:p-8 space-y-6">
                     <div>
                       <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-4">
-                        Sistema y Métricas de Evaluación
+                        {lang === "en" ? "Evaluation System & Metrics" : "Sistema y Métricas de Evaluación"}
                       </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="bg-white p-5 border border-slate-200 flex flex-col justify-between">
                           <div>
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Evidencia de Aprendizaje</p>
-                            <p className="text-xs font-bold text-slate-800 uppercase tracking-tight mb-2">Producto Entregable</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                              {lang === "en" ? "Evidence of Learning" : "Evidencia de Aprendizaje"}
+                            </p>
+                            <p className="text-xs font-bold text-slate-800 uppercase tracking-tight mb-2">
+                              {lang === "en" ? "Deliverable Product" : "Producto Entregable"}
+                            </p>
                             <p className="text-xs text-slate-600 leading-relaxed">
                               {activeLesson.evaluacion.evidencia}
                             </p>
@@ -1866,8 +1937,12 @@ ${lesson.materialDidactico.contenido}
 
                         <div className="bg-white p-5 border border-slate-200 flex flex-col justify-between">
                           <div>
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Instrumento Sugerido</p>
-                            <p className="text-xs font-bold text-slate-800 uppercase tracking-tight mb-2">Herramienta de Valoración</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                              {lang === "en" ? "Suggested Instrument" : "Instrumento Sugerido"}
+                            </p>
+                            <p className="text-xs font-bold text-slate-800 uppercase tracking-tight mb-2">
+                              {lang === "en" ? "Assessment Tool" : "Herramienta de Valoración"}
+                            </p>
                             <p className="text-xs text-slate-600 leading-relaxed font-mono">
                               {activeLesson.evaluacion.instrumento}
                             </p>
@@ -1877,7 +1952,9 @@ ${lesson.materialDidactico.contenido}
                     </div>
 
                     <div className="border-t border-slate-200 pt-6">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">Criterios de Evaluación Formativa</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">
+                        {lang === "en" ? "Formative Evaluation Criteria" : "Criterios de Evaluación Formativa"}
+                      </p>
                       <div className="space-y-2">
                         {activeLesson.evaluacion.criterios.map((crit, idx) => (
                           <div key={idx} className="bg-white p-4 border border-slate-200 flex items-start space-x-3">
@@ -1899,11 +1976,17 @@ ${lesson.materialDidactico.contenido}
                     {/* Key Questions */}
                     <div className="bg-slate-950 p-6 text-white space-y-4">
                       <div>
-                        <span className="text-[9px] text-indigo-400 uppercase font-black tracking-widest">DIDÁCTICA ACTIVA</span>
-                        <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-0.5">Preguntas de Alta Demanda Cognitiva</h4>
+                        <span className="text-[9px] text-indigo-400 uppercase font-black tracking-widest">
+                          {lang === "en" ? "ACTIVE LEARNING" : "DIDÁCTICA ACTIVA"}
+                        </span>
+                        <h4 className="text-xs font-bold text-white uppercase tracking-wider mt-0.5">
+                          {lang === "en" ? "High Cognitive Demand Questions" : "Preguntas de Alta Demanda Cognitiva"}
+                        </h4>
                       </div>
                       <p className="text-[11px] text-slate-400 leading-relaxed">
-                        Utiliza estas preguntas disparadoras durante el desarrollo de la clase para generar debate socrático y desafiar la lógica de los estudiantes:
+                        {lang === "en" 
+                          ? "Use these trigger questions during class development to generate socratic debate and challenge student logic:" 
+                          : "Utiliza estas preguntas disparadoras durante el desarrollo de la clase para generar debate socrático y desafiar la lógica de los estudiantes:"}
                       </p>
                       <ul className="space-y-3 pt-2">
                         {activeLesson.sugerenciasDocente.preguntasClave.map((pregunta, idx) => (
@@ -1918,8 +2001,12 @@ ${lesson.materialDidactico.contenido}
                     {/* Inclusive Pedagogy / Differentiation */}
                     <div className="bg-indigo-50 border-l-4 border-indigo-600 p-6 space-y-3">
                       <div>
-                        <span className="text-[9px] text-indigo-700 font-bold uppercase tracking-wider block">ATENCIÓN A LA DIVERSIDAD</span>
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Estrategias de Diferenciación</h4>
+                        <span className="text-[9px] text-indigo-700 font-bold uppercase tracking-wider block">
+                          {lang === "en" ? "ATTENTION TO DIVERSITY" : "ATENCIÓN A LA DIVERSIDAD"}
+                        </span>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                          {lang === "en" ? "Differentiation Strategies" : "Estrategias de Diferenciación"}
+                        </h4>
                       </div>
                       <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
                         {activeLesson.sugerenciasDocente.diferenciacion}
@@ -1935,20 +2022,28 @@ ${lesson.materialDidactico.contenido}
                 <div className="flex-1 bg-slate-50 border border-slate-200 p-6 md:p-8 space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
                     <div>
-                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest block mb-0.5">EVALUACIÓN FORMAL</span>
+                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest block mb-0.5">
+                        {lang === "en" ? "FORMAL ASSESSMENT" : "EVALUACIÓN FORMAL"}
+                      </span>
                       <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">
                         {activeLesson.rubrica.tituloRubrica}
                       </h3>
                     </div>
                     <button
                       onClick={() => {
-                        let rubricText = `RÚBRICA DE EVALUACIÓN: ${activeLesson.rubrica?.tituloRubrica}\n\n`;
+                        const rubHeader = lang === "en" ? "EVALUATION RUBRIC" : "RÚBRICA DE EVALUACIÓN";
+                        let rubricText = `${rubHeader}: ${activeLesson.rubrica?.tituloRubrica}\n\n`;
                         activeLesson.rubrica?.criterios.forEach((crit, index) => {
-                          rubricText += `${index + 1}. Criterio: ${crit.criterio}\n`;
-                          rubricText += `   - Excelente: ${crit.excelente}\n`;
-                          rubricText += `   - Bueno: ${crit.bueno}\n`;
-                          rubricText += `   - Regular: ${crit.regular}\n`;
-                          rubricText += `   - Insuficiente: ${crit.insuficiente}\n\n`;
+                          const critLabel = lang === "en" ? "Criteria" : "Criterio";
+                          const excLabel = lang === "en" ? "Excellent" : "Excelente";
+                          const gdLabel = lang === "en" ? "Good" : "Bueno";
+                          const frLabel = lang === "en" ? "Fair" : "Regular";
+                          const prLabel = lang === "en" ? "Needs Improvement" : "Insuficiente";
+                          rubricText += `${index + 1}. ${critLabel}: ${crit.criterio}\n`;
+                          rubricText += `   - ${excLabel}: ${crit.excelente}\n`;
+                          rubricText += `   - ${gdLabel}: ${crit.bueno}\n`;
+                          rubricText += `   - ${frLabel}: ${crit.regular}\n`;
+                          rubricText += `   - ${prLabel}: ${crit.insuficiente}\n\n`;
                         });
                         handleCopyText(rubricText, "rubric");
                       }}
@@ -1957,12 +2052,12 @@ ${lesson.materialDidactico.contenido}
                       {copiedSection === "rubric" ? (
                         <>
                           <Check className="w-4 h-4 text-emerald-600" />
-                          <span>¡Copia Lista!</span>
+                          <span>{lang === "en" ? "Copied!" : "¡Copia Lista!"}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-4 h-4" />
-                          <span>Copiar Rúbrica completa</span>
+                          <span>{lang === "en" ? "Copy Complete Rubric" : "Copiar Rúbrica completa"}</span>
                         </>
                       )}
                     </button>
@@ -1973,11 +2068,21 @@ ${lesson.materialDidactico.contenido}
                     <table className="w-full text-left border-collapse border border-slate-200 bg-white shadow-sm rounded-none">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200">
-                          <th className="p-4 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 min-w-[150px]">Criterio / Aspecto</th>
-                          <th className="p-4 text-xs font-bold text-emerald-700 uppercase tracking-wider border-r border-slate-200 min-w-[200px] bg-emerald-50/50">Excelente (Max)</th>
-                          <th className="p-4 text-xs font-bold text-blue-700 uppercase tracking-wider border-r border-slate-200 min-w-[200px] bg-blue-50/30">Bueno</th>
-                          <th className="p-4 text-xs font-bold text-amber-700 uppercase tracking-wider border-r border-slate-200 min-w-[200px] bg-amber-50/30">Regular</th>
-                          <th className="p-4 text-xs font-bold text-rose-700 uppercase tracking-wider min-w-[200px] bg-rose-50/30">Insuficiente</th>
+                          <th className="p-4 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200 min-w-[150px]">
+                            {lang === "en" ? "Criteria / Aspect" : "Criterio / Aspecto"}
+                          </th>
+                          <th className="p-4 text-xs font-bold text-emerald-700 uppercase tracking-wider border-r border-slate-200 min-w-[200px] bg-emerald-50/50">
+                            {lang === "en" ? "Excellent (Max)" : "Excelente (Max)"}
+                          </th>
+                          <th className="p-4 text-xs font-bold text-blue-700 uppercase tracking-wider border-r border-slate-200 min-w-[200px] bg-blue-50/30">
+                            {lang === "en" ? "Good" : "Bueno"}
+                          </th>
+                          <th className="p-4 text-xs font-bold text-amber-700 uppercase tracking-wider border-r border-slate-200 min-w-[200px] bg-amber-50/30">
+                            {lang === "en" ? "Fair" : "Regular"}
+                          </th>
+                          <th className="p-4 text-xs font-bold text-rose-700 uppercase tracking-wider min-w-[200px] bg-rose-50/30">
+                            {lang === "en" ? "Needs Improvement" : "Insuficiente"}
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200">
@@ -1985,7 +2090,9 @@ ${lesson.materialDidactico.contenido}
                           <tr key={idx} className="hover:bg-slate-50/40 transition-colors">
                             <td className="p-4 border-r border-slate-200">
                               <p className="text-xs font-bold text-slate-800">{crit.criterio}</p>
-                              <span className="inline-block text-[9px] font-mono text-slate-400 mt-1">Aspecto {idx + 1}</span>
+                              <span className="inline-block text-[9px] font-mono text-slate-400 mt-1">
+                                {lang === "en" ? "Aspect" : "Aspecto"} {idx + 1}
+                              </span>
                             </td>
                             <td className="p-4 border-r border-slate-200 text-xs text-slate-600 leading-relaxed bg-emerald-50/10">
                               {crit.excelente}
@@ -2010,9 +2117,13 @@ ${lesson.materialDidactico.contenido}
                       <Sparkles className="w-3.5 h-3.5" />
                     </span>
                     <div className="space-y-0.5">
-                      <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-tight">Consejo de Aplicación</h4>
+                      <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-tight">
+                        {lang === "en" ? "Application Advice" : "Consejo de Aplicación"}
+                      </h4>
                       <p className="text-xs text-indigo-700 leading-relaxed">
-                        Puedes imprimir o copiar esta rúbrica completa para compartirla directamente con tus estudiantes antes del desarrollo de la ficha de trabajo, garantizando transparencia en sus metas de aprendizaje.
+                        {lang === "en"
+                          ? "You can print or copy this full rubric to share directly with your students before worksheet development, ensuring transparency in their learning goals."
+                          : "Puedes imprimir o copiar esta rúbrica completa para compartirla directamente con tus estudiantes antes del desarrollo de la ficha de trabajo, garantizando transparencia en sus metas de aprendizaje."}
                       </p>
                     </div>
                   </div>
@@ -2025,7 +2136,7 @@ ${lesson.materialDidactico.contenido}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
                     <div>
                       <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest block mb-0.5">
-                        {activeLesson.materialDidactico.tipo || "MATERIAL DIDÁCTICO PERSONALIZADO"}
+                        {activeLesson.materialDidactico.tipo || (lang === "en" ? "CUSTOM DIDACTIC MATERIAL" : "MATERIAL DIDÁCTICO PERSONALIZADO")}
                       </span>
                       <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">
                         {activeLesson.materialDidactico.titulo}
@@ -2038,12 +2149,12 @@ ${lesson.materialDidactico.contenido}
                       {copiedSection === "didactic_material" ? (
                         <>
                           <Check className="w-4 h-4 text-emerald-600" />
-                          <span>¡Copia Lista!</span>
+                          <span>{lang === "en" ? "Copied!" : "¡Copia Lista!"}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="w-4 h-4" />
-                          <span>Copiar Material</span>
+                          <span>{lang === "en" ? "Copy Material" : "Copiar Material"}</span>
                         </>
                       )}
                     </button>
@@ -2059,9 +2170,13 @@ ${lesson.materialDidactico.contenido}
                       <Sparkles className="w-3.5 h-3.5" />
                     </span>
                     <div className="space-y-0.5">
-                      <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-tight">Acerca de este Material</h4>
+                      <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-tight">
+                        {lang === "en" ? "About this Material" : "Acerca de este Material"}
+                      </h4>
                       <p className="text-xs text-emerald-700 leading-relaxed">
-                        Este material didáctico interactivo fue diseñado en base a tus especificaciones y los parámetros del plan de clase. Es ideal para ser impreso o proyectado directamente para tus estudiantes.
+                        {lang === "en"
+                          ? "This interactive learning material was designed based on your specifications and class plan parameters. It is ideal to be printed or projected directly for your students."
+                          : "Este material didáctico interactivo fue diseñado en base a tus especificaciones y los parámetros del plan de clase. Es ideal para ser impreso o proyectado directamente para tus estudiantes."}
                       </p>
                     </div>
                   </div>
@@ -2078,23 +2193,23 @@ ${lesson.materialDidactico.contenido}
                   <div className="border-b border-slate-200 pb-6">
                     <div className="flex flex-wrap gap-2 mb-3">
                       <span className="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-2.5 py-1 uppercase font-black border border-emerald-200/50">
-                        Dificultad: {activeEvaluation.dificultad}
+                        {lang === "en" ? "Difficulty:" : "Dificultad:"} {activeEvaluation.dificultad}
                       </span>
                       <span className="text-[10px] font-mono bg-slate-100 text-slate-600 px-2.5 py-1 uppercase font-black border border-slate-200 truncate max-w-[200px]">
-                        Documento: {activeEvaluation.documentoReferencia}
+                        {lang === "en" ? "Document:" : "Documento:"} {activeEvaluation.documentoReferencia}
                       </span>
                       <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 px-2.5 py-1 uppercase font-black border border-indigo-200/50">
-                        {activeEvaluation.preguntas.length} Preguntas
+                        {activeEvaluation.preguntas.length} {lang === "en" ? "Questions" : "Preguntas"}
                       </span>
                     </div>
 
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div>
                         <h2 className="text-2xl md:text-3xl font-light text-slate-900 uppercase tracking-tight font-display">
-                          Evaluación: <span className="font-bold text-emerald-800">{activeEvaluation.titulo}</span>
+                          {lang === "en" ? "Assessment:" : "Evaluación:"} <span className="font-bold text-emerald-800">{activeEvaluation.titulo}</span>
                         </h2>
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1">
-                          Generada exclusivamente en base al documento adjunto
+                          {lang === "en" ? "Generated exclusively based on the attached document" : "Generada exclusivamente en base al documento adjunto"}
                         </p>
                       </div>
 
@@ -2105,7 +2220,7 @@ ${lesson.materialDidactico.contenido}
                           className="px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-all cursor-pointer shadow-md shadow-emerald-600/10 hover:shadow-lg rounded-xl"
                         >
                           <Download className="w-4 h-4 text-emerald-100 animate-pulse" />
-                          <span>Descargar Word (.doc)</span>
+                          <span>{lang === "en" ? "Download Word (.doc)" : "Descargar Word (.doc)"}</span>
                         </button>
                       </div>
                     </div>
@@ -2121,7 +2236,7 @@ ${lesson.materialDidactico.contenido}
                           : "border-transparent text-slate-500 hover:text-slate-700 font-bold"
                       }`}
                     >
-                      📄 Ficha del Estudiante
+                      {lang === "en" ? "📄 Student Sheet" : "📄 Ficha del Estudiante"}
                     </button>
                     <button
                       onClick={() => setActiveEvaluationTab("answers")}
@@ -2131,7 +2246,7 @@ ${lesson.materialDidactico.contenido}
                           : "border-transparent text-slate-500 hover:text-slate-700 font-bold"
                       }`}
                     >
-                      🔑 Solucionario (Docente)
+                      {lang === "en" ? "🔑 Answer Key (Teacher)" : "🔑 Solucionario (Docente)"}
                     </button>
                   </div>
 
@@ -2142,20 +2257,24 @@ ${lesson.materialDidactico.contenido}
                         {/* Header block for exam */}
                         <div className="border-b border-slate-200 pb-6 text-center space-y-2">
                           <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">{activeEvaluation.titulo}</h3>
-                          <p className="text-xs text-slate-500 italic">Evaluación de Desempeño y Comprensión</p>
+                          <p className="text-xs text-slate-500 italic">
+                            {lang === "en" ? "Performance and Understanding Evaluation" : "Evaluación de Desempeño y Comprensión"}
+                          </p>
                           <div className="grid grid-cols-2 gap-4 max-w-xl mx-auto pt-4 text-left">
                             <div className="border border-slate-200 p-2.5 text-xs text-slate-600 font-medium">
-                              <span className="font-bold text-slate-800">Estudiante:</span> ____________________________________
+                              <span className="font-bold text-slate-800">{lang === "en" ? "Student:" : "Estudiante:"}</span> ____________________________________
                             </div>
                             <div className="border border-slate-200 p-2.5 text-xs text-slate-600 font-medium">
-                              <span className="font-bold text-slate-800">Fecha:</span> _______________________
+                              <span className="font-bold text-slate-800">{lang === "en" ? "Date:" : "Fecha:"}</span> _______________________
                             </div>
                           </div>
                         </div>
 
                         {/* Instructions */}
                         <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-                          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Instrucciones generales:</h4>
+                          <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            {lang === "en" ? "General instructions:" : "Instrucciones generales:"}
+                          </h4>
                           <p className="text-xs text-slate-600 leading-relaxed">{activeEvaluation.instrucciones}</p>
                         </div>
 
@@ -2186,11 +2305,11 @@ ${lesson.materialDidactico.contenido}
                                 <div className="flex space-x-6 ml-4 text-xs">
                                   <label className="flex items-center space-x-2 cursor-pointer bg-slate-50 px-4 py-2 border border-slate-100 rounded-lg hover:bg-slate-100/50">
                                     <input type="radio" name={`q-${idx}`} className="text-emerald-600 focus:ring-emerald-500" />
-                                    <span className="font-semibold text-slate-700">Verdadero</span>
+                                    <span className="font-semibold text-slate-700">{lang === "en" ? "True" : "Verdadero"}</span>
                                   </label>
                                   <label className="flex items-center space-x-2 cursor-pointer bg-slate-50 px-4 py-2 border border-slate-100 rounded-lg hover:bg-slate-100/50">
                                     <input type="radio" name={`q-${idx}`} className="text-emerald-600 focus:ring-emerald-500" />
-                                    <span className="font-semibold text-slate-700">Falso</span>
+                                    <span className="font-semibold text-slate-700">{lang === "en" ? "False" : "Falso"}</span>
                                   </label>
                                 </div>
                               )}
@@ -2198,7 +2317,11 @@ ${lesson.materialDidactico.contenido}
                               {/* Juicio Crítico */}
                               {q.tipo === "juicio_critico" && (
                                 <div className="ml-4 space-y-2">
-                                  <p className="text-[11px] text-slate-400 italic">Escribe tu respuesta y fundamenta tu punto de vista de manera analítica en el siguiente espacio:</p>
+                                  <p className="text-[11px] text-slate-400 italic">
+                                    {lang === "en" 
+                                      ? "Write your answer and support your point of view analytically in the space below:" 
+                                      : "Escribe tu respuesta y fundamenta tu punto de vista de manera analítica en el siguiente espacio:"}
+                                  </p>
                                   <div className="w-full h-32 bg-slate-50/50 border border-dashed border-slate-200 rounded-xl"></div>
                                 </div>
                               )}
@@ -2214,7 +2337,7 @@ ${lesson.materialDidactico.contenido}
                             className="px-5 py-3 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-all cursor-pointer rounded-xl"
                           >
                             <Download className="w-4 h-4 text-slate-300" />
-                            <span>Descargar Ficha Completa en Word (.doc)</span>
+                            <span>{lang === "en" ? "Download Full Sheet in Word (.doc)" : "Descargar Ficha Completa en Word (.doc)"}</span>
                           </button>
                         </div>
                       </div>
@@ -2225,10 +2348,14 @@ ${lesson.materialDidactico.contenido}
                           <div key={idx} className="bg-emerald-50/30 border border-emerald-100/80 rounded-2xl p-6 space-y-4">
                             <div className="flex justify-between items-start">
                               <h5 className="text-xs font-bold text-slate-800 uppercase tracking-tight">
-                                Pregunta {idx + 1}
+                                {lang === "en" ? "Question" : "Pregunta"} {idx + 1}
                               </h5>
                               <span className="bg-emerald-100/80 text-emerald-800 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-200/50">
-                                {q.tipo === "opcion_multiple" ? "Opción Múltiple" : q.tipo === "verdadero_falso" ? "Verdadero/Falso" : "Juicio Crítico"}
+                                {q.tipo === "opcion_multiple" 
+                                  ? (lang === "en" ? "Multiple Choice" : "Opción Múltiple") 
+                                  : q.tipo === "verdadero_falso" 
+                                    ? (lang === "en" ? "True/False" : "Verdadero/Falso") 
+                                    : (lang === "en" ? "Critical Judgment" : "Juicio Crítico")}
                               </span>
                             </div>
 
@@ -2261,7 +2388,7 @@ ${lesson.materialDidactico.contenido}
                             <div className="bg-white border border-emerald-100 rounded-xl p-4 space-y-2.5">
                               <div>
                                 <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
-                                  Respuesta Correcta / Sugerida:
+                                  {lang === "en" ? "Correct / Suggested Answer:" : "Respuesta Correcta / Sugerida:"}
                                 </span>
                                 <p className="text-xs font-bold text-slate-800 mt-0.5">
                                   {q.respuestaCorrecta}
@@ -2270,7 +2397,7 @@ ${lesson.materialDidactico.contenido}
 
                               <div className="border-t border-slate-100 pt-2.5">
                                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                                  Justificación Pedagógica o Criterio de Evaluación:
+                                  {lang === "en" ? "Pedagogical Justification or Assessment Criteria:" : "Justificación Pedagógica o Criterio de Evaluación:"}
                                 </span>
                                 <p className="text-xs text-slate-600 leading-relaxed mt-0.5 font-medium">
                                   {q.justificacion}
@@ -2292,20 +2419,20 @@ ${lesson.materialDidactico.contenido}
                   <div className="border-b border-slate-200 pb-6">
                     <div className="flex flex-wrap gap-2 mb-3">
                       <span className="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-2.5 py-1 uppercase font-black border border-emerald-200/50">
-                        Redacción Asertiva
+                        {lang === "en" ? "Assertive Writing" : "Redacción Asertiva"}
                       </span>
                       <span className="text-[10px] font-mono bg-indigo-50 text-indigo-700 px-2.5 py-1 uppercase font-black border border-indigo-200/50">
-                        Tema: {activeComunicado.tema}
+                        {lang === "en" ? "Topic:" : "Tema:"} {activeComunicado.tema}
                       </span>
                     </div>
 
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div>
                         <h2 className="text-2xl md:text-3xl font-light text-slate-900 uppercase tracking-tight font-display">
-                          Comunicado: <span className="font-bold text-slate-800">{activeComunicado.titulo}</span>
+                          {lang === "en" ? "Communication:" : "Comunicado:"} <span className="font-bold text-slate-800">{activeComunicado.titulo}</span>
                         </h2>
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1">
-                          Motivo principal de comunicación constructiva y asertiva
+                          {lang === "en" ? "Primary motive for constructive and assertive communication" : "Motivo principal de comunicación constructiva y asertiva"}
                         </p>
                       </div>
 
@@ -2313,7 +2440,7 @@ ${lesson.materialDidactico.contenido}
                       <div className="flex items-center space-x-2 shrink-0 self-start no-print">
                         <button
                           onClick={() => handleCopyText(
-                            `${activeComunicado.titulo}\n\n${activeComunicado.saludo}\n\n${activeComunicado.introduccion}\n\n${activeComunicado.desarrollo}\n\n${activeComunicado.propuestaColaboracion}\n\n${activeComunicado.despedida}\n\nAtentamente,\nEquipo Docente`,
+                            `${activeComunicado.titulo}\n\n${activeComunicado.saludo}\n\n${activeComunicado.introduccion}\n\n${activeComunicado.desarrollo}\n\n${activeComunicado.propuestaColaboracion}\n\n${activeComunicado.despedida}\n\n${lang === "en" ? "Sincerely,\nTeaching Staff" : "Atentamente,\nEquipo Docente"}`,
                             "comunicado-full"
                           )}
                           className={`px-4 py-3 border text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all cursor-pointer rounded-xl ${
@@ -2325,12 +2452,12 @@ ${lesson.materialDidactico.contenido}
                           {copiedSection === "comunicado-full" ? (
                             <>
                               <Check className="w-4 h-4 text-emerald-600 animate-bounce" />
-                              <span>Copiado</span>
+                              <span>{lang === "en" ? "Copied" : "Copiado"}</span>
                             </>
                           ) : (
                             <>
                               <Copy className="w-4 h-4" />
-                              <span>Copiar Texto</span>
+                              <span>{lang === "en" ? "Copy Text" : "Copiar Texto"}</span>
                             </>
                           )}
                         </button>
@@ -2340,7 +2467,7 @@ ${lesson.materialDidactico.contenido}
                           className="px-5 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-2 transition-all cursor-pointer shadow-md shadow-indigo-600/10 hover:shadow-lg rounded-xl"
                         >
                           <Download className="w-4 h-4 text-indigo-100" />
-                          <span>Descargar Word</span>
+                          <span>{lang === "en" ? "Download Word" : "Descargar Word"}</span>
                         </button>
                       </div>
                     </div>
@@ -2353,12 +2480,20 @@ ${lesson.materialDidactico.contenido}
                       {/* Decorative header of the letter */}
                       <div className="flex items-center justify-between border-b-2 border-slate-100 pb-4 mb-8">
                         <div>
-                          <p className="text-[10px] text-indigo-600 font-extrabold uppercase tracking-widest">COMUNICADO OFICIAL</p>
-                          <p className="text-[11px] text-slate-400 font-mono font-medium">{new Date().toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}</p>
+                          <p className="text-[10px] text-indigo-600 font-extrabold uppercase tracking-widest">
+                            {lang === "en" ? "OFFICIAL COMMUNICATION" : "COMUNICADO OFICIAL"}
+                          </p>
+                          <p className="text-[11px] text-slate-400 font-mono font-medium">
+                            {new Date().toLocaleDateString(lang === "en" ? "en-US" : "es-ES", { year: "numeric", month: "long", day: "numeric" })}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-black text-slate-700 uppercase tracking-wider">Institución Educativa</p>
-                          <p className="text-[10px] text-slate-400 font-semibold uppercase">Departamento de Orientación y Tutoría</p>
+                          <p className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                            {lang === "en" ? "Educational Institution" : "Institución Educativa"}
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-semibold uppercase">
+                            {lang === "en" ? "Counseling & Tutoring Department" : "Departamento de Orientación y Tutoría"}
+                          </p>
                         </div>
                       </div>
 
@@ -2374,8 +2509,12 @@ ${lesson.materialDidactico.contenido}
                       {/* Signature block */}
                       <div className="pt-8 border-t border-slate-100/60 flex flex-col items-center text-center">
                         <div className="w-48 border-t border-slate-300 my-4"></div>
-                        <p className="text-xs font-bold text-slate-800 uppercase tracking-tight">Docencia y Tutoría</p>
-                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Equipo de Acompañamiento Escolar</p>
+                        <p className="text-xs font-bold text-slate-800 uppercase tracking-tight">
+                          {lang === "en" ? "Teaching and Tutoring" : "Docencia y Tutoría"}
+                        </p>
+                        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                          {lang === "en" ? "School Support Team" : "Equipo de Acompañamiento Escolar"}
+                        </p>
                       </div>
                     </div>
 
@@ -2385,10 +2524,14 @@ ${lesson.materialDidactico.contenido}
                       <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4">
                         <div className="flex items-center space-x-2 text-indigo-800 border-b border-slate-200 pb-2">
                           <Heart className="w-5 h-5 text-indigo-600" />
-                          <h4 className="text-xs font-black uppercase tracking-wider">Estrategias Asertivas Empleadas</h4>
+                          <h4 className="text-xs font-black uppercase tracking-wider">
+                            {lang === "en" ? "Assertive Strategies Employed" : "Estrategias Asertivas Empleadas"}
+                          </h4>
                         </div>
                         <p className="text-[11px] text-slate-500 italic leading-relaxed">
-                          La redacción utiliza psicología positiva y técnicas asertivas para mantener una alianza fuerte con la familia:
+                          {lang === "en"
+                            ? "The writing utilizes positive psychology and assertive techniques to maintain a strong partnership with the family:"
+                            : "La redacción utiliza psicología positiva y técnicas asertivas para mantener una alianza fuerte con la familia:"}
                         </p>
                         <ul className="space-y-2.5">
                           {activeComunicado.tecnicasUtilizadas.map((tec, tIdx) => (
@@ -2406,10 +2549,14 @@ ${lesson.materialDidactico.contenido}
                       <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl space-y-4">
                         <div className="flex items-center space-x-2 text-emerald-800 border-b border-slate-200 pb-2">
                           <Sparkles className="w-5 h-5 text-emerald-600" />
-                          <h4 className="text-xs font-black uppercase tracking-wider">Orientaciones para el Hogar</h4>
+                          <h4 className="text-xs font-black uppercase tracking-wider">
+                            {lang === "en" ? "Guidelines for Home" : "Orientaciones para el Hogar"}
+                          </h4>
                         </div>
                         <p className="text-[11px] text-slate-500 italic leading-relaxed">
-                          Recomendaciones para compartir con los padres o para dar continuidad desde casa de manera cooperativa:
+                          {lang === "en"
+                            ? "Recommendations to share with parents or to follow up from home cooperatively:"
+                            : "Recomendaciones para compartir con los padres o para dar continuidad desde casa de manera cooperativa:"}
                         </p>
                         <ul className="space-y-2.5">
                           {activeComunicado.sugerenciasCasa.map((sug, sIdx) => (

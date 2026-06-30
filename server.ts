@@ -449,11 +449,14 @@ app.post("/api/generate-lesson", async (req, res) => {
     documentMimeType,
     includeRubric,
     customDidacticMaterial,
+    lang,
   } = req.body;
 
   if (!theme) {
     return res.status(400).json({ error: "El tema (theme) es un parámetro obligatorio." });
   }
+
+  const isEnglish = lang === "en" || lang === "en-US";
 
   try {
     const ai = getAIClient();
@@ -519,9 +522,19 @@ app.post("/api/generate-lesson", async (req, res) => {
     }
 
     // Construct a rich educational prompt
-    const systemPrompt = `Eres un pedagogo experto y un excelente diseñador curricular en Paraguay y Latinoamérica. Tu tarea es generar una planificación docente completa, rigurosa y didáctica llamada "Sesión de Aprendizaje" o "Plan de Clase" en español. Debes adaptar todo el contenido según los parámetros de nivel educativo, duración, y enfoque pedagógico que profesa el usuario. Asegúrate de que las actividades planteadas sean realistas, dinámicas y de alta calidad para capturar el interés del estudiante.`;
+    const systemPrompt = isEnglish
+      ? `You are an expert pedagogue and an excellent curriculum designer. Your task is to generate a complete, rigorous, and didactic lesson plan called "Lesson Plan" or "Class Session" in English. You must adapt all the content according to the educational level, duration, and pedagogical approach provided by the user. Ensure that the activities are realistic, dynamic, and of high quality to capture the student's interest.`
+      : `Eres un pedagogo experto y un excelente diseñador curricular en Paraguay y Latinoamérica. Tu tarea es generar una planificación docente completa, rigurosa y didáctica llamada "Sesión de Aprendizaje" o "Plan de Clase" en español. Debes adaptar todo el contenido según los parámetros de nivel educativo, duración, y enfoque pedagógico que profesa el usuario. Asegúrate de que las actividades planteadas sean realistas, dinámicas y de alta calidad para capturar el interés del estudiante.`;
 
-    let userPrompt = `Por favor, genera una sesión de clase completa y altamente detallada basada en los siguientes parámetros:
+    let userPrompt = isEnglish
+      ? `Please generate a complete and highly detailed class session based on the following parameters:
+- **Topic**: "${theme}"
+- **Educational Level**: "${educationLevel || "Any"}"
+- **Estimated Duration**: "${duration || "90 minutes"}"
+- **Pedagogical Approach**: "${pedagogicalApproach || "Constructivism and Active Learning"}"
+${objective ? `- **Requested specific learning objective**: "${objective}"` : ""}
+${additionalNotes ? `- **Additional notes / User requirements**: "${additionalNotes}"` : ""}`
+      : `Por favor, genera una sesión de clase completa y altamente detallada basada en los siguientes parámetros:
 - **Tema o Temática**: "${theme}"
 - **Nivel Educativo**: "${educationLevel || "Cualquiera"}"
 - **Duración Estimada**: "${duration || "90 minutos"}"
@@ -530,10 +543,19 @@ ${objective ? `- **Objetivo de Aprendizaje específico solicitado**: "${objectiv
 ${additionalNotes ? `- **Notas adicionales / Requisitos del usuario**: "${additionalNotes}"` : ""}`;
 
     if (isPdf && pdfBuffer) {
-      userPrompt += `\n\n- **DOCUMENTO DE REFERENCIA (PDF Adjunto)**:
+      userPrompt += isEnglish
+        ? `\n\n- **REFERENCE DOCUMENT (PDF Attached)**:
+The user has attached a reference PDF document titled "${documentName || "attached_document.pdf"}". You have been provided with the PDF directly for analysis. You must base the didactic content of the session, exercises, explanations, pedagogical concepts, and the learning sequence STRICTLY on the information, readings, or grammar provided in this PDF.`
+        : `\n\n- **DOCUMENTO DE REFERENCIA (PDF Adjunto)**:
 El usuario ha adjuntado un documento PDF de referencia titulado "${documentName || "documento_adjunto.pdf"}". Se te ha provisto el PDF directamente para su análisis. Debes basar el contenido didáctico de la sesión, los ejercicios, explicaciones, conceptos pedagógicos y la secuencia didáctica ESTRICTAMENTE en la información, lecturas o gramática provista en este PDF.`;
     } else if (extractedText) {
-      userPrompt += `\n\n- **DOCUMENTO DE REFERENCIA ADJUNTO (Prioridad Máxima)**:
+      userPrompt += isEnglish
+        ? `\n\n- **ATTACHED REFERENCE DOCUMENT (Maximum Priority)**:
+The user has attached a reference document titled "${documentName || "attached_document"}". You must base the didactic content of the session, exercises, explanations, concepts, and learning sequence STRICTLY on the extracted text content below:
+"""
+${extractedText}
+"""`
+        : `\n\n- **DOCUMENTO DE REFERENCIA ADJUNTO (Prioridad Máxima)**:
 El usuario ha adjuntado un documento de referencia titulado "${documentName || "documento_adjunto"}". Debes basar el contenido didáctico de la sesión, los ejercicios, explicaciones, conceptos y la secuencia didáctica ESTRICTAMENTE en el contenido de texto extraído a continuación:
 """
 ${extractedText}
@@ -541,23 +563,38 @@ ${extractedText}
     }
 
     if (includeRubric) {
-      userPrompt += `\n\n- **RÚBRICA DE EVALUACIÓN DETALLADA (REQUISITO FUNDAMENTAL)**:
+      userPrompt += isEnglish
+        ? `\n\n- **DETAILED EVALUATION RUBRIC (FUNDAMENTAL REQUIREMENT)**:
+The user has specifically requested to include an EVALUATION RUBRIC. Please generate an extremely detailed, professional, and didactic rubric in the "rubrica" field, consisting of at least 3 or 4 criteria relevant to the topic and clear levels of achievement with detailed descriptive texts for Excellent, Good, Fair, and Poor.`
+        : `\n\n- **RÚBRICA DE EVALUACIÓN DETALLADA (REQUISITO FUNDAMENTAL)**:
 El usuario ha solicitado expresamente incluir una RÚBRICA LISTA PARA APLICAR basada en la temática. Por favor, genera una rúbrica extremadamente detallada, profesional y didáctica en el campo "rubrica", que conste de al menos 3 o 4 criterios pertinentes al tema y niveles claros de logro con textos descriptivos minuciosos para Excelente, Bueno, Regular e Insuficiente.`;
     } else {
-      userPrompt += `\n\n- **RÚBRICA DE EVALUACIÓN**:
+      userPrompt += isEnglish
+        ? `\n\n- **EVALUATION RUBRIC**:
+The user has not urgently requested a detailed rubric. Generate a simple or standard rubric according to the topic in the "rubrica" field of the JSON response.`
+        : `\n\n- **RÚBRICA DE EVALUACIÓN**:
 El usuario no ha solicitado de forma urgente una rúbrica detallada. Genera una rúbrica sencilla o estándar acorde al tema en el campo "rubrica" de la respuesta.`;
     }
 
     if (customDidacticMaterial && customDidacticMaterial.trim()) {
-      userPrompt += `\n\n- **MATERIAL DIDÁCTICO PERSONALIZADO (REQUISITO FUNDAMENTAL)**:
+      userPrompt += isEnglish
+        ? `\n\n- **CUSTOM DIDACTIC MATERIAL (FUNDAMENTAL REQUIREMENT)**:
+The user has explicitly requested to create the following didactic material: "${customDidacticMaterial.trim()}".
+You must complete the 'materialDidactico' field with a creative title, the type of material ("${customDidacticMaterial.trim()}"), and the full pedagogical content of this didactic material, fully developed in Markdown (using lists, tables, dialogues, or detailed explanations as appropriate). Do not use empty summaries or placeholders. Develop all the content.`
+        : `\n\n- **MATERIAL DIDÁCTICO PERSONALIZADO (REQUISITO FUNDAMENTAL)**:
 El usuario ha solicitado expresamente crear el siguiente material didáctico: "${customDidacticMaterial.trim()}".
 Debes completar obligatoriamente el campo 'materialDidactico' con un título creativo, el tipo de material ("${customDidacticMaterial.trim()}"), y el contenido pedagógico completo de este material didáctico, desarrollado extensamente en Markdown (utilizando listas, tablas, diálogos o explicaciones detalladas según corresponda). No utilices resúmenes vacíos ni dejes marcadores de posición. Desarrolla todo el contenido.`;
     } else {
-      userPrompt += `\n\n- **SIN MATERIAL DIDÁCTICO PERSONALIZADO**:
+      userPrompt += isEnglish
+        ? `\n\n- **NO CUSTOM DIDACTIC MATERIAL**:
+No specific custom didactic material has been requested. Please leave the 'materialDidactico' field as null or omit it in the JSON response.`
+        : `\n\n- **SIN MATERIAL DIDÁCTICO PERSONALIZADO**:
 No se ha solicitado crear un material didáctico específico personalizado. Por favor, deja el campo 'materialDidactico' como null o no lo generes en la respuesta JSON.`;
     }
 
-    userPrompt += `\n\nGenera la sesión de clase siguiendo estrictamente la estructura del esquema JSON definido. Todo el texto de retorno debe ser en español castellano profesional y adaptado didácticamente.`;
+    userPrompt += isEnglish
+      ? `\n\nGenerate the class session strictly following the structure of the defined JSON schema. All the returned text must be in professional and pedagogically adapted English.`
+      : `\n\nGenera la sesión de clase siguiendo estrictamente la estructura del esquema JSON definido. Todo el texto de retorno debe ser en español castellano profesional y adaptado didácticamente.`;
 
     // Setup contents argument for generateContent
     let contents: any = userPrompt;
@@ -610,6 +647,7 @@ app.post("/api/generate-evaluation", async (req, res) => {
     difficulty,
     questionTypes,
     questionCount,
+    lang,
   } = req.body;
 
   if (!documentContent) {
@@ -619,6 +657,7 @@ app.post("/api/generate-evaluation", async (req, res) => {
   const qCount = parseInt(questionCount, 10) || 5;
   const diffStr = difficulty || "Medio";
   const typesList = Array.isArray(questionTypes) && questionTypes.length > 0 ? questionTypes : ["opcion_multiple"];
+  const isEnglish = lang === "en" || lang === "en-US";
 
   try {
     const ai = getAIClient();
@@ -682,9 +721,37 @@ app.post("/api/generate-evaluation", async (req, res) => {
     }
 
     // Construct evaluation system prompt
-    const systemPrompt = `Eres un pedagogo experto y un especialista en diseño de evaluaciones formativas y sumativas en español. Tu tarea es generar una evaluación/prueba académica estructurada, de alta calidad y rigor pedagógico, basada ESTRICTAMENTE en el documento provisto como referencia. No inventes información que no esté sustentada en el documento.`;
+    const systemPrompt = isEnglish
+      ? `You are an expert pedagogue and a specialist in formative and summative assessment design in English. Your task is to generate a structured, high-quality, and pedagogically rigorous academic assessment/quiz based STRICTLY on the document provided as a reference. Do not invent information not supported by the document.`
+      : `Eres un pedagogo experto y un especialista en diseño de evaluaciones formativas y sumativas en español. Tu tarea es generar una evaluación/prueba académica estructurada, de alta calidad y rigor pedagógico, basada ESTRICTAMENTE en el documento provisto como referencia. No inventes información que no esté sustentada en el documento.`;
 
-    let userPrompt = `Por favor, genera una evaluación académica completa basada en el documento adjunto. Parámetros solicitados:
+    let userPrompt = isEnglish
+      ? `Please generate a complete academic assessment based on the attached document. Requested parameters:
+- **Difficulty**: "${diffStr}" (Adapt the cognitive complexity of the questions to this level: Low is literal comprehension, Medium is basic analysis and application, High is deep analysis, synthesis, or complex critical judgment).
+- **Total Number of Questions**: ${qCount}
+- **Allowed Question Types**: ${typesList.map((t: string) => {
+      if (t === "opcion_multiple") return "Multiple Choice (4 alternatives)";
+      if (t === "verdadero_falso") return "True or False";
+      if (t === "juicio_critico") return "Critical Judgment (open-ended question of high cognitive demand)";
+      return t;
+    }).join(", ")}
+
+Instructions for generating questions:
+1. Generate exactly ${qCount} questions in total, distributed evenly among the selected question types.
+2. Each question must strictly belong to one of the authorized types (tipo: 'opcion_multiple', 'verdadero_falso', or 'juicio_critico').
+3. For 'opcion_multiple':
+   - You must provide exactly 4 response options in the "opciones" array starting with letters (A, B, C, D) (e.g.: ["A) Option one", "B) Option two", ...]).
+   - The "respuestaCorrecta" field must contain only the correct letter (e.g.: "A" or "B" or "C" or "D").
+4. For 'verdadero_falso':
+   - Leave the "opciones" array empty or null.
+   - The "respuestaCorrecta" field must be "True" or "False".
+5. For 'juicio_critico':
+   - Leave the "opciones" array empty or null.
+   - The "respuestaCorrecta" field must contain a detailed suggested model response or specific criteria the teacher should look for to consider the response correct.
+6. The "justificacion" field must explain in a didactic way why the answer is correct or the rationale behind it based on the reading.
+
+All text must be in professional, pedagogically adapted English.`
+      : `Por favor, genera una evaluación académica completa basada en el documento adjunto. Parámetros solicitados:
 - **Dificultad**: "${diffStr}" (Adapta la complejidad cognitiva de las preguntas a este nivel: Bajo es comprensión literal, Medio es análisis y aplicación básica, Alto es análisis profundo, síntesis o juicio crítico complejo).
 - **Cantidad Total de Preguntas**: ${qCount}
 - **Tipos de Preguntas Permitidos**: ${typesList.map((t: string) => {
@@ -711,13 +778,20 @@ Instrucciones para generar las preguntas:
 Todo el texto generado debe estar en español castellano profesional y adaptado didácticamente.`;
 
     if (isPdf && pdfBuffer) {
-      userPrompt += `\n\n- **DOCUMENTO DE REFERENCIA (PDF Adjunto)**:
-El usuario ha adjuntado el PDF titulado "${documentName || "documento.pdf"}". Analízalo detalladamente y basa tus preguntas en él de forma rigurosa.`;
+      userPrompt += isEnglish
+        ? `\n\n- **REFERENCE DOCUMENT (PDF Attached)**:
+The user has attached the PDF titled "${documentName || "document.pdf"}". Analyze it thoroughly and strictly base your questions on it.`
+        : `\n\n- **DOCUMENTO DE REFERENCIA (PDF Adjunto)**:
+El usuario ha adjuntado el PDF titulado "${documentName || "document.pdf"}". Analízalo detalladamente y basa tus preguntas en él de forma rigurosa.`;
     } else if (extractedText) {
-      userPrompt += `\n\n- **TEXTO DEL DOCUMENTO DE REFERENCIA**:\n"""\n${extractedText}\n"""`;
+      userPrompt += isEnglish
+        ? `\n\n- **REFERENCE DOCUMENT TEXT**:\n"""\n${extractedText}\n"""`
+        : `\n\n- **TEXTO DEL DOCUMENTO DE REFERENCIA**:\n"""\n${extractedText}\n"""`;
     }
 
-    userPrompt += `\n\nGenera la evaluación estructurada en base al esquema JSON provisto. Asegúrate de retornar exactamente un JSON válido.`;
+    userPrompt += isEnglish
+      ? `\n\nGenerate the structured evaluation based on the provided JSON schema. Ensure to return exactly a valid JSON in English.`
+      : `\n\nGenera la evaluación estructurada en base al esquema JSON provisto. Asegúrate de retornar exactamente un JSON válido.`;
 
     let contents: any = userPrompt;
     if (isPdf && pdfBuffer) {
@@ -763,7 +837,7 @@ El usuario ha adjuntado el PDF titulado "${documentName || "documento.pdf"}". An
 // API Endpoint to generate assertive communications for parents
 app.post("/api/generate-comunicado", async (req, res) => {
   try {
-    const { nombre, tema } = req.body;
+    const { nombre, tema, lang } = req.body;
 
     if (!nombre || !nombre.trim()) {
       return res.status(400).json({ error: "El nombre del alumno o destinatario es requerido." });
@@ -772,7 +846,21 @@ app.post("/api/generate-comunicado", async (req, res) => {
       return res.status(400).json({ error: "El tema o motivo del comunicado es requerido." });
     }
 
-    const systemPrompt = `Eres un psicólogo educativo y docente experto en comunicación asertiva, empatía y resolución de conflictos entre la escuela y el hogar.
+    const isEnglish = lang === "en" || lang === "en-US";
+
+    const systemPrompt = isEnglish
+      ? `You are an educational psychologist and expert teacher in assertive communication, empathy, and conflict resolution between school and home.
+Your goal is to draft a communication for parents about a specific topic concerning a student, rigorously and expertly applying assertive and empathetic communication techniques in English.
+
+The assertive communication techniques you must explicitly apply include:
+1. **The Sandwich Technique**: Start by valuing a positive aspect or strength of the student, introduce the area of opportunity or situation constructively, and end with a positive commitment and joint support.
+2. **First-Person Messages ("I-Messages")**: Focus the communication from the perspective of the school team seeking to help, avoiding judging, pointing fingers, or making parents or the student feel guilty (avoid "You are/Your child is...").
+3. **Objective Description of Facts**: Describe concrete and observable behaviors instead of putting generic labels or subjective diagnoses (e.g., say "has difficulty maintaining focus for more than 10 minutes" instead of "is hyperactive or distracted").
+4. **Co-responsibility Focus**: Treat parents as indispensable allies for the academic and socio-emotional growth of the student, promoting teamwork (School + Family).
+5. **Proactive and Solution-Oriented Language**: Focus conclusions and recommendations on positive actions to be taken in the future, not on past punishments or reproaches.
+
+You must return the requested complete JSON structure in professional, empathetic English.`
+      : `Eres un psicólogo educativo y docente experto en comunicación asertiva, empatía y resolución de conflictos entre la escuela y el hogar.
 Tu objetivo es redactar un comunicado para los padres de familia sobre un tema específico de un estudiante, utilizando de manera rigurosa y experta técnicas de comunicación asertiva y empatía.
 
 Las técnicas de comunicación asertiva que debes aplicar de forma explícita incluyen:
@@ -784,7 +872,24 @@ Las técnicas de comunicación asertiva que debes aplicar de forma explícita in
 
 Debes devolver obligatoriamente la estructura JSON solicitada completa en español castellano profesional y empático.`;
 
-    const userPrompt = `Por favor, redacta un comunicado escolar altamente formal, asertivo y empático.
+    const userPrompt = isEnglish
+      ? `Please write a highly formal, assertive, and empathetic school communication in English.
+Recipient/student details:
+- **Name**: ${nombre.trim()}
+- **Topic or reason**: ${tema.trim()}
+
+Make sure to fill out each field of the JSON response with great pedagogical detail:
+1. 'titulo': A formal, warm, and orienting title (without causing alarm).
+2. 'saludo': A highly respectful and personalized greeting.
+3. 'introduccion': The beginning where the student is highlighted positively.
+4. 'desarrollo': The assertive, objective, and non-judgmental approach to the actual situation or reason for the communication.
+5. 'propuestaColaboracion': Actions proposed by the school and an open invitation to collaborate jointly.
+6. 'despedida': Formal, cordial, and thankful closing.
+7. 'tecnicasUtilizadas': A pedagogical breakdown explaining in detail to the teacher which exact assertive techniques you applied in the letter and why it was drafted this way (e.g., 'The sandwich technique was used to avoid a defensive posture...').
+8. 'sugerenciasCasa': A list of 3 to 5 friendly, practical, and highly constructive guidelines or recommendations that parents can implement at home to help.
+
+Generate the structured communication according to the provided JSON schema.`
+      : `Por favor, redacta un comunicado escolar altamente formal, asertivo y empático.
 Datos del destinatario/alumno:
 - **Nombre**: ${nombre.trim()}
 - **Tema o motivo del comunicado**: ${tema.trim()}

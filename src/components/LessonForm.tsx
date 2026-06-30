@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BookOpen, Sparkles, Clock, Compass, Layers, FileText, CheckCircle2, Upload, Paperclip, X, HelpCircle, Award, Check } from "lucide-react";
+import { i18n } from "../i18n";
 
 interface LessonFormProps {
   onGenerate: (formData: {
@@ -24,9 +25,10 @@ interface LessonFormProps {
     questionCount: number;
   }) => void;
   isLoading: boolean;
+  lang: string;
 }
 
-const SUGGESTED_THEMES = [
+const SUGGESTED_THEMES_ES = [
   { text: "English Grammar", icon: "🇬🇧" },
   { text: "Fotosíntesis", icon: "🌱" },
   { text: "El ciclo del agua", icon: "💧" },
@@ -37,7 +39,18 @@ const SUGGESTED_THEMES = [
   { text: "Cambio climático", icon: "🌍" },
 ];
 
-const PEDAGOGICAL_APPROACHES = [
+const SUGGESTED_THEMES_EN = [
+  { text: "English Grammar", icon: "🇬🇧" },
+  { text: "Photosynthesis", icon: "🌱" },
+  { text: "The Water Cycle", icon: "💧" },
+  { text: "Pythagorean Theorem", icon: "📐" },
+  { text: "The Roman Empire", icon: "🏛️" },
+  { text: "Basic Fractions", icon: "🍕" },
+  { text: "Newton's Laws", icon: "🍎" },
+  { text: "Climate Change", icon: "🌍" },
+];
+
+const PEDAGOGICAL_APPROACHES_ES = [
   { value: "Constructivismo", label: "Constructivista (Aprendizaje activo y autónomo)" },
   { value: "Aprendizaje Basado en Problemas (ABP)", label: "ABP (Resolución de retos reales)" },
   { value: "Aula Invertida (Flipped Classroom)", label: "Aula Invertida (Teoría previa en casa, práctica en clase)" },
@@ -46,7 +59,16 @@ const PEDAGOGICAL_APPROACHES = [
   { value: "Gamificación", label: "Gamificación (Aprender jugando con dinámicas lúdicas)" },
 ];
 
-const EDUCATION_LEVELS = [
+const PEDAGOGICAL_APPROACHES_EN = [
+  { value: "Constructivism", label: "Constructivist (Active and autonomous learning)" },
+  { value: "Problem-Based Learning (PBL)", label: "PBL (Solving real-world challenges)" },
+  { value: "Flipped Classroom", label: "Flipped Classroom (Pre-class study, in-class active practice)" },
+  { value: "Cooperative Learning", label: "Cooperative Learning (Teamwork and coordinated groups)" },
+  { value: "Direct Instruction / Interactive Lecture", label: "Interactive Lecture (Active lecture + feedback)" },
+  { value: "Gamification", label: "Gamification (Play-based learning with fun dynamics)" },
+];
+
+const EDUCATION_LEVELS_ES = [
   "10.º Grado (Primero de la Media - Paraguay)",
   "Educación Primaria (6-11 años)",
   "Educación Secundaria (12-15 años)",
@@ -56,7 +78,17 @@ const EDUCATION_LEVELS = [
   "Educación de Adultos",
 ];
 
-const DURATIONS = [
+const EDUCATION_LEVELS_EN = [
+  "10th Grade (High School Sophomore)",
+  "Primary Education (Ages 6-11)",
+  "Secondary Education (Ages 12-15)",
+  "High School / Preparatory (Ages 16-18)",
+  "Higher / University Education",
+  "Technical & Professional Education",
+  "Adult Education",
+];
+
+const DURATIONS_ES = [
   "90 minutos",
   "45 minutos",
   "60 minutos",
@@ -64,23 +96,53 @@ const DURATIONS = [
   "180 minutos (Taller)",
 ];
 
-const LOADING_STEPS = [
+const DURATIONS_EN = [
+  "90 minutes",
+  "45 minutes",
+  "60 minutes",
+  "120 minutes",
+  "180 minutes (Workshop)",
+];
+
+const LOADING_STEPS_ES = [
   "Analizando la temática elegida...",
   "Procesando el documento adjunto con inteligencia pedagógica...",
   "Estructurando los objetivos generales y específicos...",
-  "Diseñando la secuencia didáctica para el 10.º Grado en Paraguay...",
+  "Diseñando la secuencia didáctica pedagógica...",
   "Seleccionando materiales óptimos para el docente y alumno...",
-  "Elaborando la ficha de trabajo práctica de English Grammar...",
+  "Elaborando la ficha de trabajo práctica...",
   "Redactando criterios de evaluación y rúbrica formativa...",
   "Generando consejos adicionales de diferenciación en el aula...",
   "Finalizando la planificación pedagógica...",
 ];
 
-export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading }: LessonFormProps) {
-  const [theme, setTheme] = useState("English Grammar");
-  const [educationLevel, setEducationLevel] = useState(EDUCATION_LEVELS[0]); // Default to 10.º Grado Paraguay
-  const [duration, setDuration] = useState(DURATIONS[0]); // Default to 90 min
-  const [pedagogicalApproach, setPedagogicalApproach] = useState(PEDAGOGICAL_APPROACHES[0].value); // Default to Constructivismo
+const LOADING_STEPS_EN = [
+  "Analyzing selected topic...",
+  "Processing attached document with pedagogical intelligence...",
+  "Structuring general and specific learning objectives...",
+  "Designing the pedagogical learning sequence...",
+  "Selecting optimal resources for teacher and student...",
+  "Crafting independent practice worksheet...",
+  "Drafting evaluation criteria and formative rubric...",
+  "Generating classroom differentiation guidelines...",
+  "Finalizing pedagogical lesson plan...",
+];
+
+export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading, lang }: LessonFormProps) {
+  const isEn = lang === "en";
+  const activeLang = (isEn ? "en" : "es") as "en" | "es";
+  const t = i18n[activeLang];
+
+  const suggestedThemes = isEn ? SUGGESTED_THEMES_EN : SUGGESTED_THEMES_ES;
+  const pedagogicalApproaches = isEn ? PEDAGOGICAL_APPROACHES_EN : PEDAGOGICAL_APPROACHES_ES;
+  const educationLevels = isEn ? EDUCATION_LEVELS_EN : EDUCATION_LEVELS_ES;
+  const durations = isEn ? DURATIONS_EN : DURATIONS_ES;
+  const loadingSteps = isEn ? LOADING_STEPS_EN : LOADING_STEPS_ES;
+
+  const [theme, setTheme] = useState(suggestedThemes[0].text);
+  const [educationLevel, setEducationLevel] = useState(educationLevels[0]);
+  const [duration, setDuration] = useState(durations[0]);
+  const [pedagogicalApproach, setPedagogicalApproach] = useState(pedagogicalApproaches[0].value);
   const [objective, setObjective] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
@@ -96,10 +158,18 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
   const [customDidacticMaterial, setCustomDidacticMaterial] = useState("");
 
   // Customized Evaluation states
-  const [evalDifficulty, setEvalDifficulty] = useState("Medio");
+  const [evalDifficulty, setEvalDifficulty] = useState(isEn ? "Medium" : "Medio");
   const [evalQuestionTypes, setEvalQuestionTypes] = useState<string[]>(["opcion_multiple"]);
   const [evalQuestionCount, setEvalQuestionCount] = useState(10);
 
+  // Adapt defaults if language changes and fields are untouched
+  useEffect(() => {
+    setTheme(suggestedThemes[0].text);
+    setEducationLevel(educationLevels[0]);
+    setDuration(durations[0]);
+    setPedagogicalApproach(pedagogicalApproaches[0].value);
+    setEvalDifficulty(isEn ? "Medium" : "Medio");
+  }, [lang]);
 
   // Rotate loading steps message to keep the experience highly engaging
   useEffect(() => {
@@ -107,13 +177,13 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
     if (isLoading) {
       setLoadingStepIndex(0);
       interval = setInterval(() => {
-        setLoadingStepIndex((prev) => (prev + 1) % LOADING_STEPS.length);
+        setLoadingStepIndex((prev) => (prev + 1) % loadingSteps.length);
       }, 3500);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isLoading]);
+  }, [isLoading, loadingSteps]);
 
   // Handle file reader
   const handleFile = (file: File) => {
@@ -134,7 +204,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
       }
     };
     reader.onerror = () => {
-      alert("Error al leer el archivo. Por favor, intenta de nuevo.");
+      alert(isEn ? "Error reading file. Please try again." : "Error al leer el archivo. Por favor, intenta de nuevo.");
     };
     
     // Read files as DataURL (handles binary files like PDF, Word, Excel, PowerPoint)
@@ -181,7 +251,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
 
     // Use fileContent or pasteContent or both as document source
     const finalDocContent = fileContent || (pasteContent.trim() ? pasteContent.trim() : undefined);
-    const finalDocName = fileName || (pasteContent.trim() ? "Texto pegado manualmente" : undefined);
+    const finalDocName = fileName || (pasteContent.trim() ? (isEn ? "Manually pasted text" : "Texto pegado manualmente") : undefined);
     const finalMimeType = fileMimeType || (pasteContent.trim() ? "text/plain" : undefined);
 
     onGenerate({
@@ -206,8 +276,8 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
           <BookOpen className="w-6 h-6" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-800 font-display">Configurar Planificación</h2>
-          <p className="text-sm text-slate-500">Define los parámetros de tu clase y la IA creará una sesión estructurada.</p>
+          <h2 className="text-xl font-bold text-slate-800 font-display">{t.formTitle}</h2>
+          <p className="text-sm text-slate-500">{t.formSubtitle}</p>
         </div>
       </div>
 
@@ -215,7 +285,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
         {/* Theme input */}
         <div className="space-y-2">
           <label htmlFor="theme-input" className="block text-sm font-semibold text-slate-700">
-            Temática de la Clase <span className="text-rose-500">*</span>
+            {t.fieldTheme} <span className="text-rose-500">*</span>
           </label>
           <div className="relative">
             <input
@@ -223,7 +293,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
               type="text"
               required
               disabled={isLoading}
-              placeholder="Ej. Fotosíntesis, El Imperio Romano, Fracciones Básicas..."
+              placeholder={t.fieldThemePlaceholder}
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all text-slate-800 placeholder:text-slate-400"
@@ -234,9 +304,9 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
 
         {/* Suggestion Chips */}
         <div className="space-y-1.5">
-          <span className="text-xs font-semibold text-slate-500 block">Sugerencias populares:</span>
+          <span className="text-xs font-semibold text-slate-500 block">{t.popularSuggestions}</span>
           <div className="flex flex-wrap gap-2">
-            {SUGGESTED_THEMES.map((item) => (
+            {suggestedThemes.map((item) => (
               <button
                 key={item.text}
                 type="button"
@@ -259,7 +329,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="level-select" className="block text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-slate-400" /> Nivel Educativo
+              <Layers className="w-4 h-4 text-slate-400" /> {t.fieldLevel}
             </label>
             <select
               id="level-select"
@@ -268,7 +338,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
               onChange={(e) => setEducationLevel(e.target.value)}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all text-slate-700"
             >
-              {EDUCATION_LEVELS.map((level) => (
+              {educationLevels.map((level) => (
                 <option key={level} value={level}>
                   {level}
                 </option>
@@ -278,7 +348,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
 
           <div className="space-y-2">
             <label htmlFor="duration-select" className="block text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-slate-400" /> Duración de la Sesión
+              <Clock className="w-4 h-4 text-slate-400" /> {t.fieldDuration}
             </label>
             <select
               id="duration-select"
@@ -287,7 +357,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
               onChange={(e) => setDuration(e.target.value)}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all text-slate-700"
             >
-              {DURATIONS.map((dur) => (
+              {durations.map((dur) => (
                 <option key={dur} value={dur}>
                   {dur}
                 </option>
@@ -299,7 +369,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
         {/* Pedagogical Approach */}
         <div className="space-y-2">
           <label htmlFor="approach-select" className="block text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-            <Compass className="w-4 h-4 text-slate-400" /> Enfoque Metodológico / Pedagógico
+            <Compass className="w-4 h-4 text-slate-400" /> {t.fieldApproach}
           </label>
           <select
             id="approach-select"
@@ -308,7 +378,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
             onChange={(e) => setPedagogicalApproach(e.target.value)}
             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all text-slate-700"
           >
-            {PEDAGOGICAL_APPROACHES.map((appr) => (
+            {pedagogicalApproaches.map((appr) => (
               <option key={appr.value} value={appr.value}>
                 {appr.label}
               </option>
@@ -320,9 +390,9 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
         <div className="space-y-2.5">
           <label className="block text-sm font-semibold text-slate-700 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
-              <Paperclip className="w-4 h-4 text-slate-400" /> Adjuntar Documento de Referencia
+              <Paperclip className="w-4 h-4 text-slate-400" /> {t.fieldUpload}
             </span>
-            <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded uppercase">OPCIONAL</span>
+            <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded uppercase">{isEn ? "OPTIONAL" : "OPCIONAL"}</span>
           </label>
           
           {/* Drag & Drop Zone */}
@@ -354,8 +424,8 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
                   <Upload className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Arrastra o selecciona un archivo</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Soporta PDF, Word, Excel, PowerPoint y texto plano</p>
+                  <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">{isEn ? "Drag or select a file" : "Arrastra o selecciona un archivo"}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{isEn ? "Supports PDF, Word, Excel, PowerPoint and plain text" : "Soporta PDF, Word, Excel, PowerPoint y texto plano"}</p>
                 </div>
               </label>
               
@@ -366,7 +436,9 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
                   onClick={() => setShowPasteArea(!showPasteArea)}
                   className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
                 >
-                  {showPasteArea ? "Ocultar cuadro de texto" : "O pegar el texto de tu PDF / Word directamente"}
+                  {showPasteArea 
+                    ? (isEn ? "Hide text box" : "Ocultar cuadro de texto") 
+                    : (isEn ? "Or paste your PDF / Word text directly" : "O pegar el texto de tu PDF / Word directamente")}
                 </button>
               </div>
             </div>
@@ -382,7 +454,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
                   </p>
                   <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                    Documento leído con éxito
+                    {isEn ? "Document loaded successfully" : "Documento leído con éxito"}
                   </p>
                 </div>
               </div>
@@ -390,7 +462,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
                 type="button"
                 onClick={removeAttachedFile}
                 className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all rounded"
-                title="Remover archivo"
+                title={isEn ? "Remove file" : "Remover archivo"}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -401,26 +473,26 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
           {showPasteArea && !fileName && (
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
               <label htmlFor="paste-area" className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">
-                Contenido del Documento / Currículo:
+                {t.fieldUploadPaste}:
               </label>
               <textarea
                 id="paste-area"
                 rows={4}
                 disabled={isLoading}
-                placeholder="Pega aquí el contenido, directrices, lecturas o gramática que quieras que usemos como base para diseñar la clase..."
+                placeholder={t.fieldUploadPastePlaceholder}
                 value={pasteContent}
                 onChange={(e) => setPasteContent(e.target.value)}
                 className="w-full p-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-xs text-slate-700 placeholder:text-slate-400 resize-y font-mono"
               />
               {pasteContent.trim() && (
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-slate-400">Caracteres cargados: {pasteContent.length}</span>
+                  <span className="text-slate-400">{isEn ? "Loaded characters: " : "Caracteres cargados: "}{pasteContent.length}</span>
                   <button 
                     type="button" 
                     onClick={() => setPasteContent("")} 
                     className="text-rose-600 hover:underline"
                   >
-                    Borrar texto
+                    {isEn ? "Clear text" : "Borrar texto"}
                   </button>
                 </div>
               )}
@@ -435,8 +507,8 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
               <Sparkles className="w-4.5 h-4.5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-tight">Rúbrica de Evaluación</h4>
-              <p className="text-[10px] text-slate-500 font-medium">Generar rúbrica de evaluación lista para aplicar</p>
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-tight">{t.detailedRubric}</h4>
+              <p className="text-[10px] text-slate-500 font-medium">{t.fieldRubric}</p>
             </div>
           </div>
           <button
@@ -454,13 +526,13 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
         {/* Optional Custom Objectives */}
         <div className="space-y-2">
           <label htmlFor="objective-input" className="block text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-slate-400" /> Objetivo específico de aprendizaje (Opcional)
+            <CheckCircle2 className="w-4 h-4 text-slate-400" /> {t.fieldObjective}
           </label>
           <textarea
             id="objective-input"
             rows={2}
             disabled={isLoading}
-            placeholder="Ej. Lograr que entiendan la diferencia entre fotosíntesis diurna y nocturna..."
+            placeholder={t.fieldObjectivePlaceholder}
             value={objective}
             onChange={(e) => setObjective(e.target.value)}
             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all text-slate-700 text-sm placeholder:text-slate-400 resize-y"
@@ -470,13 +542,13 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
         {/* Additional notes */}
         <div className="space-y-2">
           <label htmlFor="notes-input" className="block text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-slate-400" /> Instrucciones adicionales o Recursos (Opcional)
+            <FileText className="w-4 h-4 text-slate-400" /> {isEn ? "Additional instructions or Resources (Optional)" : "Instrucciones adicionales o Recursos (Opcional)"}
           </label>
           <textarea
             id="notes-input"
             rows={2}
             disabled={isLoading}
-            placeholder="Ej. Añadir experimentos caseros sencillos, usar material reciclado, etc."
+            placeholder={isEn ? "e.g., Add simple home experiments, use recycled materials, etc." : "Ej. Añadir experimentos caseros sencillos, usar material reciclado, etc."}
             value={additionalNotes}
             onChange={(e) => setAdditionalNotes(e.target.value)}
             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 focus:bg-white transition-all text-slate-700 text-sm placeholder:text-slate-400 resize-y"
@@ -487,21 +559,23 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
         <div className="space-y-2">
           <label htmlFor="custom-didactic-material-input" className="block text-sm font-semibold text-slate-700 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" /> Material Didáctico Personalizado (Opcional)
+              <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" /> {t.fieldDidactic}
             </span>
-            <span className="text-[9px] font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">SI SE DEJA VACÍO, NO SE CREARÁ</span>
+            <span className="text-[9px] font-black text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{isEn ? "OMIT IF EMPTY" : "SI SE DEJA VACÍO, NO SE CREARÁ"}</span>
           </label>
           <input
             id="custom-didactic-material-input"
             type="text"
             disabled={isLoading}
-            placeholder="Ej. Un juego de rol de 10 preguntas, un conjunto de 5 flashcards, un resumen de conceptos..."
+            placeholder={t.fieldDidacticPlaceholder}
             value={customDidacticMaterial}
             onChange={(e) => setCustomDidacticMaterial(e.target.value)}
             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all text-slate-700 text-sm placeholder:text-slate-400"
           />
           <p className="text-[10px] text-slate-400 italic">
-            Especifica qué tipo de material didáctico adicional deseas que la IA genere. Si esta caja está vacía, el material no se creará.
+            {isEn 
+              ? "Specify what kind of extra didactic material you want the AI to generate. If empty, it won't be created." 
+              : "Especifica qué tipo de material didáctico adicional deseas que la IA genere. Si esta caja está vacía, el material no se creará."}
           </p>
         </div>
 
@@ -515,29 +589,31 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
                 <Award className={`w-5 h-5 ${fileContent ? 'text-emerald-600' : 'text-slate-400'}`} />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
-                  Generador Exclusivo de Evaluaciones
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 font-display">
+                  {t.formEvalTitle}
                 </h3>
               </div>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Crea un examen estructurado basado única y exclusivamente en el material del documento adjunto.
+              <p className="text-xs text-slate-500 font-medium leading-relaxed font-sans">
+                {t.formEvalSubtitle}
               </p>
             </div>
             {fileContent ? (
               <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider rounded-full">
-                Habilitado
+                {isEn ? "Enabled" : "Habilitado"}
               </span>
             ) : (
               <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider rounded-full">
-                Inactivo
+                {isEn ? "Inactive" : "Inactivo"}
               </span>
             )}
           </div>
 
           {!fileContent && (
             <div className="mt-4 p-3 bg-slate-100/60 border border-dashed border-slate-200 rounded-xl text-center">
-              <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
-                🔒 Adjunta un archivo arriba (PDF, Word, Excel, etc.) o pega texto para habilitar este botón y sus opciones.
+              <p className="text-[11px] text-slate-500 font-semibold leading-relaxed font-sans">
+                {isEn 
+                  ? "🔒 Upload a file above (PDF, Word, Excel, etc.) or paste text to enable this section and its options." 
+                  : "🔒 Adjunta un archivo arriba (PDF, Word, Excel, etc.) o pega texto para habilitar este botón y sus opciones."}
               </p>
             </div>
           )}
@@ -547,37 +623,44 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
             {/* 1. DIFICULTAD */}
             <div className="space-y-2">
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">
-                Dificultad de la Evaluación:
+                {t.fieldDifficulty}:
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {["Bajo", "Medio", "Alto"].map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    disabled={!fileContent}
-                    onClick={() => setEvalDifficulty(level)}
-                    className={`py-2 px-3 text-xs font-bold rounded-lg uppercase tracking-wider border transition-all cursor-pointer ${
-                      evalDifficulty === level
-                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm shadow-emerald-600/10'
-                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600'
-                    }`}
-                  >
-                    {level === "Bajo" ? "Bajo" : level === "Medio" ? "Medio" : "Alto"}
-                  </button>
-                ))}
+                {["Bajo", "Medio", "Alto"].map((level) => {
+                  const displayLevel = isEn 
+                    ? (level === "Bajo" ? "Low" : level === "Medio" ? "Medium" : "High") 
+                    : (level === "Bajo" ? "Bajo" : level === "Medio" ? "Medio" : "Alto");
+                  const matchVal = level === "Bajo" ? (isEn ? "Low" : "Bajo") : level === "Medio" ? (isEn ? "Medium" : "Medio") : (isEn ? "High" : "Alto");
+                  
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      disabled={!fileContent}
+                      onClick={() => setEvalDifficulty(matchVal)}
+                      className={`py-2 px-3 text-xs font-bold rounded-lg uppercase tracking-wider border transition-all cursor-pointer ${
+                        evalDifficulty === matchVal
+                          ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm shadow-emerald-600/10'
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600'
+                      }`}
+                    >
+                      {displayLevel}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* 2. TIPO DE PREGUNTAS */}
             <div className="space-y-2">
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">
-                Tipos de Preguntas (Selecciona uno o varios):
+                {isEn ? "Question Types (Select one or more):" : "Tipos de Preguntas (Selecciona uno o varios):"}
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {[
-                  { id: "opcion_multiple", label: "Opción Múltiple" },
-                  { id: "verdadero_falso", label: "Verdadero o Falso" },
-                  { id: "juicio_critico", label: "Juicio Crítico" },
+                  { id: "opcion_multiple", label: t.typeMultiple },
+                  { id: "verdadero_falso", label: t.typeTrueFalse },
+                  { id: "juicio_critico", label: t.typeCritical },
                 ].map((type) => {
                   const isSelected = evalQuestionTypes.includes(type.id);
                   return (
@@ -592,14 +675,14 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
                           setEvalQuestionTypes([...evalQuestionTypes, type.id]);
                         }
                       }}
-                      className={`flex items-center justify-between p-2.5 rounded-lg border text-[11px] font-bold uppercase tracking-tight transition-all cursor-pointer ${
+                      className={`flex items-center justify-between p-2.5 rounded-lg border text-[10px] font-bold uppercase tracking-tight transition-all cursor-pointer ${
                         isSelected
                           ? 'bg-emerald-50 border-emerald-400 text-emerald-900'
                           : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-600'
                       }`}
                     >
                       <span>{type.label}</span>
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center ${isSelected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'}`}>
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ml-1.5 ${isSelected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'}`}>
                         {isSelected && <Check className="w-3 h-3" />}
                       </div>
                     </button>
@@ -611,7 +694,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
             {/* 3. CANTIDAD DE PREGUNTAS */}
             <div className="space-y-2">
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide">
-                Cantidad de Preguntas:
+                {t.fieldQuestionCount}:
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {[5, 10, 15, 20].map((num) => (
@@ -626,7 +709,7 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
                         : 'bg-white border-slate-200 hover:border-slate-300 text-slate-600'
                     }`}
                   >
-                    {num} Pregs.
+                    {num} {isEn ? "Qs" : "Pregs"}
                   </button>
                 ))}
               </div>
@@ -657,12 +740,12 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                <span>Generando Evaluación...</span>
+                <span>{t.btnGenerating}</span>
               </div>
             ) : (
               <>
-                <Award className="w-5 h-5 text-emerald-100 animate-pulse" />
-                <span>Generar Evaluación Exclusiva</span>
+                <Award className="w-5 h-5 text-emerald-100" />
+                <span>{t.btnGenerateEval}</span>
               </>
             )}
           </button>
@@ -672,14 +755,14 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-200"></div>
           </div>
-          <span className="relative px-3 bg-white text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ó</span>
+          <span className="relative px-3 bg-white text-[11px] font-bold text-slate-400 uppercase tracking-widest">{isEn ? "OR" : "Ó"}</span>
         </div>
 
         {/* Action Button */}
         <button
           type="submit"
           disabled={isLoading || !theme.trim()}
-          className="w-full relative overflow-hidden bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white py-4 px-6 rounded-xl font-bold font-display shadow-md shadow-indigo-600/10 hover:shadow-lg hover:shadow-indigo-600/20 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+          className="w-full relative overflow-hidden bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed text-white py-4 px-6 rounded-xl font-bold font-display shadow-md shadow-indigo-600/10 hover:shadow-lg hover:shadow-indigo-600/20 transition-all flex items-center justify-center space-x-2 cursor-pointer text-xs uppercase tracking-wider"
         >
           {isLoading ? (
             <div className="flex items-center space-x-3">
@@ -687,12 +770,12 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <span>Generando...</span>
+              <span>{t.btnGenerating}</span>
             </div>
           ) : (
             <>
-              <Sparkles className="w-5 h-5" />
-              <span>Diseñar Sesión de Clase Inteligente</span>
+              <Sparkles className="w-5 h-5 animate-pulse" />
+              <span>{t.btnGenerateClass}</span>
             </>
           )}
         </button>
@@ -706,15 +789,15 @@ export default function LessonForm({ onGenerate, onGenerateEvaluation, isLoading
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-600"></span>
             </span>
-            <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wider">Laboratorio Pedagógico de IA</span>
+            <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wider">{isEn ? "AI Pedagogical Laboratory" : "Laboratorio Pedagógico de IA"}</span>
           </div>
           <p className="mt-2 text-sm font-medium text-slate-700 transition-all duration-300">
-            {LOADING_STEPS[loadingStepIndex]}
+            {loadingSteps[loadingStepIndex]}
           </p>
           <div className="mt-3 w-full bg-indigo-100 h-1.5 rounded-full overflow-hidden">
             <div
               className="bg-indigo-600 h-1.5 rounded-full transition-all duration-500"
-              style={{ width: `${((loadingStepIndex + 1) / LOADING_STEPS.length) * 100}%` }}
+              style={{ width: `${((loadingStepIndex + 1) / loadingSteps.length) * 100}%` }}
             ></div>
           </div>
         </div>
